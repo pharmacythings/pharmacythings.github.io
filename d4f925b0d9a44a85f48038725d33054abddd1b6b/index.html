@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head> 
+    <meta charset="utf-8">
+    <title>Mock Final Test</title>
+    <!-- jquery for maximum compatibility -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+    /** Simple JavaScript Quiz
+     * version 0.1.0
+     * http://journalism.berkeley.edu
+     * created by: Jeremy Rue @jrue
+     *
+     * Copyright (c) 2013 The Regents of the University of California
+     * Released under the GPL Version 2 license
+     * http://www.opensource.org/licenses/gpl-2.0.php
+     * This program is distributed in the hope that it will be useful, but
+     * WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     */
+
+    var quiztitle = "Derek's Dandelion Quiz";
+
+    /**
+    * Set the information about your questions here. The correct answer string needs to match
+    * the correct choice exactly, as it does string matching. (case sensitive)
+    *
+    */
+    var quiz = [
+        {
+            "question"      :   "Q1: Which ONE of the following contributes to good customer service?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/d/d9/Saskatoon_transit_customer_service_23d_St.JPG",
+            "choices"       :   [
+                                    "A. Customers are treated fairly and respectfully",
+                                    "B. Problems are only addressed when a formal complaint is made",
+                                    "C. Staff refer all customers with special needs to their manager",
+                                    "D. Answering the phone is a given priority above waiting customers"
+                                ],
+            "correct"       :   "A. Customers are treated fairly and respectfully",
+            "explanation"   :   "The correct answer is: A. Customers are treated fairly and respectfully.",
+        },
+        {
+            "question"      :   "Q2: Which of the following is NOT an example of a vulnerable adult or child?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/e/e6/Boys_and_Girls_of_Bookland_Mowgli.jpg",
+            "choices"       :   [
+                                    "A. An elderly lady who is showing signs of dementia",
+                                    "B. A 10-year old boy whose parents have been seriously injured in a car accident",
+                                    "C. A woman in her early 30s who has just given birth to twins",
+                                    "D. A man in his mid-80s who is showing signs of neglect"
+                                ],
+            "correct"       :   "C. A woman in her early 30s who has just given birth to twins",
+            "explanation"   :   "The correct answer is: C. A woman in her early 30s who has just given birth to twins",
+        },
+        {
+            "question"      :   "Q3: When asking questions to identify a customer's needs, it is helpful to start with open questions then follow up with closed questions.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/2/2f/Who_wants.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True.",
+        },
+		{
+            "question"      :   "Q4: Only customer complaints that are likely to be escalated need to be handled seriously.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/4/45/Complaint_Department_please_take_a_number.svg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "B. False",
+            "explanation"   :   "The correct answer is: B. False",
+        },
+		{
+            "question"      :   "Q5: Which of the following best describes your own responsibilities in relation to health and safety?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/4/42/Health_and_Safety_%2816139929176%29.jpg",
+            "choices"       :   [
+                                    "A. It is important to look after my own health and safety. My employer will do the rest.",
+                                    "B. It is my responsibility to ensure that my working environment is safe and that any risks to health are minimised",
+                                    "C. As well as taking care of my own health and safety, I must take reasonable care to not put other people at risk because of the things that I do or don't do in the course of my work",
+                                    "D. Health and safety is my employer's responsibility. It's nothing to do with me."
+                                ],
+            "correct"       :   "C. As well as taking care of my own health and safety, I must take reasonable care to not put other people at risk because of the things that I do or don't do in the course of my work",
+            "explanation"   :   "The correct answer is: C. As well as taking care of my own health and safety, I must take reasonable care to not put other people at risk because of the things that I do or don't do in the course of my work",
+        },
+		{
+            "question"      :   "Q6: Identify the situation where the employee has NOT met their responsibilities according to HASAWA.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/5/54/Alberta_Department_of_Public_Health_Work_Safety_Poster_%2826534407826%29.jpg",
+            "choices"       :   [
+                                    "A. An employee reporting a neck strain after working at the dispensary computer",
+                                    "B. An employee responsible for delivering medicines to patients telling their employer about the antihistamines they have been prescribed as they make them drowsy",
+                                    "C. An employee asking to read the organisation's health and safety policies and SOPs before undertaking a new task",
+                                    "D. An employee does not remove disposable gloves after dispensing cytotoxics and then washes up"
+                                ],
+            "correct"       :   "D. An employee does not remove disposable gloves after dispensing cytotoxics and then washes up",
+            "explanation"   :   "The correct answer is: D. An employee does not remove disposable gloves after dispensing cytotoxics and then washes up",
+        },
+		{
+            "question"      :   "Q7: A hazard is something with the potential to cause harm.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/PointMuguHARM.jpg/1280px-PointMuguHARM.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q8: Any injury at work should be recorded in the accident book.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/c/ca/Quill_%28PSF%29.png",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q9: Which of the following do you think is most likely to IMPROVE communication within a team?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/0/0a/Semaphore_Signals_A-Z.jpg",
+            "choices"       :   [
+                                    "A. Regular team meetings to encourage the team to share their ideas",
+                                    "B. Emails or notices to let the team know about changes in the workplace",
+                                    "C. Social or other activities that help to build respect among team members",
+                                    "D. All of the above"
+                                ],
+            "correct"       :   "D. All of the above",
+            "explanation"   :   "The correct answer is: D. All of the above",
+        },
+		{
+            "question"      :   "Q10: You overhear a member of the pharmacy team gossiping about a patient with another colleague. The team member passes on some information that you know should be kept confidential. What should you do?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/c/c8/%27Gossip%27_by_Eugen_von_Blaas%2C_1903.jpg",
+            "choices"       :   [
+                                    "A. Tell the patient next time you see them what you have heard",
+                                    "B. Follow your organisation's procedures for reporting concerns",
+                                    "C. Do nothing - it's none of your business",
+                                    "D. Share the same information with your friends. The information is out in the open now so it doesn't matter who knows"
+                                ],
+            "correct"       :   "B. Follow your organisation's procedures for reporting concerns",
+            "explanation"   :   "The correct answer is: B. Follow your organisation's procedures for reporting concerns",
+        },
+		{
+            "question"      :   "Q11: A team that does not communicate well can easily lose its sense of unity and direction.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/9/93/CompassUseMap.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "TThe correct answer is: A. True",
+        },
+        {
+            "question"      :   "Q12: Every team member should be treated fairly and with respect.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/e/e2/RESPECT%2C_Thursday_evening_rally_against_Trump%27s_%22Muslim_Ban%22_policies_sponsored_by_Freedom_Muslim_American_Women%27s_Policy_%2832512423746%29.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                   
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+        {
+            "question"      :   "Q13: When receiving a prescription from a patient for dispensing, which one of the following is good practice?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/f/fb/Customer_caring_in_the_shop.jpg",
+            "choices"       :   [
+                                    "A. Ensure the patient waits for the prescription in case you have any queries that you need to consult them on while dispensing",
+                                    "B. Check you have the item(s) in stock and that the prescription is valid",
+				    "C. Pass it immediately to the dispensary without checking the prescription so it can be dispensed as soon as possible",
+				    "D. Check the prescription is valid and tell them it will be ready to collect in an hour"
+
+                                ],
+            "correct"       :   "B. Check you have the item(s) in stock and that the prescription is valid",
+            "explanation"   :   "The correct answer is: B. Check you have the item(s) in stock and that the prescription is valid",
+        },
+		{
+            "question"      :   "Q14: Identify the CORRECT statement concerning a prescription for an insulin presented to the pharmacy.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/6/61/Insulin%26Syringe.JPG",
+            "choices"       :   [
+                                    "A. The prescriber's address must be in the UK",
+                                    "B. The total quantity should be stated in words and figures on the prescription",
+                                    "C. 'Use as directed' is an acceptable instruction on the prescription",
+                                    "D. It must be dispensed within 30 days of the date specified"
+                                ],
+            "correct"       :   "C. 'Use as directed' is an acceptable instruction on the prescription",
+            "explanation"   :   "TThe correct answer is: C. 'Use as directed' is an acceptable instruction on the prescription",
+        },
+		{
+            "question"      :   "Q15: Prescriptions for Schedule 2 controlled drugs cannot be repeated.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/d/d8/Faenza-media-playlist-repeat.svg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False" 
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q16: There is no restriction on what can be prescribed on NHS prescriptions.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/d/d9/Anything_goes_%283455827867%29.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "B. False",
+            "explanation"   :   "The correct answer is: B. False",
+        },
+		{
+            "question"      :   "Q17: Identify how many tablets should be dispensed on a prescription which has the following dosage regime:'8 OD for 1/52 then reduce by one tablet per day'",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/b/bc/Einstein_Blackboard_Exploitable_template.jpg",
+            "choices"       :   [
+                                    "A. 112",
+                                    "B. 84",
+                                    "C. 63",
+                                    "D. 56"
+                                ],
+            "correct"       :   "B. 84",
+            "explanation"   :   "The correct answer is: B. 84",
+        },
+		{
+            "question"      :   "Q18: Identify the method of administration for glyceryl trinitrate 400 micrograms per dose spray:",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/e/e4/Wrong_Way_sign_in_Leverett_Circle%2C_May_2013.jpg",
+            "choices"       :   [
+                                    "A. Sublingual administration",
+                                    "B. Buccal administration",
+                                    "C. Oral administration",
+                                    "D. Inhaled administration"
+                                ],
+            "correct"       :   "A. Sublingual administration",
+            "explanation"   :   "The correct answer is: A. Sublingual administration",
+        },
+		{
+            "question"      :   "Q19: When performing an in-process self-check, the dispensed product should be checked against both the dispensing labels and the prescription.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/e/ee/Check_Check.png",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q20: 250mg is equivalent to 0.25g.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/1/1e/A_man_being_weighed_on_a_huge_set_of_scales%2C_and_a_man_with_Wellcome_V0025585.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                   
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q21: It is important that stock levels are maintained appropriately and owing items are kept to a minimum. Which of the following are potential implications of owing items",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/d/de/Live_stock_-_a_cyclopedia_for_the_farmer_and_stock_owner_including_the_breeding%2C_care%2C_feeding_and_management_of_horses%2C_cattle%2C_swine%2C_sheep_and_poultry_with_a_special_department_on_dairying_-_being_%2814591973777%29.jpg",
+            "choices"       :   [
+                                    "A. Increased profit to the pharmacy",
+                                    "B. Patients may not adhere to their treatment",
+                                    "C. Less time to dispense the prescription",
+                                    "D. Increased patient satisfaction"
+                                ],
+            "correct"       :   "B. Patients may not adhere to their treatment",
+            "explanation"   :   "The correct answer is: B. Patients may not adhere to their treatment",
+        },
+        {
+            "question"      :   "Q22: Which one of the following statements about live stock control systems is TRUE?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/1/14/The_book_of_live_stock_champions_%281912%29_%2820391541472%29.jpg",
+            "choices"       :   [
+                                    "A. Dispensing or labelling errors cannot lead to inaccurate stock levels",
+                                    "B. There is no need to check stock information manually at all",
+                                    "C. Stock level is automatically updated when a product is dispensed",
+                                    "D. It is not the user's responsibility to ensure the correct product is selected on the system"
+                                ],
+            "correct"       :   "C. Stock level is automatically updated when a product is dispensed",
+            "explanation"   :   "The correct answer is: C. Stock level is automatically updated when a product is dispensed",
+        },
+        {
+            "question"      :   "Q23: In a minimum order system you would order stock each time you dispense it.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/5/5d/Minimum_Speed_5.svg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                ],
+            "correct"       :   "B. False",
+            "explanation"   :   "The correct answer is: B. False.",
+        },
+		{
+            "question"      :   "Q24: A dispensary can often hold contracts to order stock from multiple suppliers.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/9/9c/Schw%C3%B6rbrief_de_Strasbourg_de_1334.png",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q25: Identify the drug which needs to be stored in the Controlled Drug Cupboard but records regarding receipt and supply do not need to be kept in the Controlled Drugs Register:",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/f/f1/Garda_Wall_cupboard_02.jpg",
+            "choices"       :   [
+                                    "A. Temazepam",
+                                    "B. Midazolam",
+                                    "C. Morphine",
+                                    "D. Pethidine"
+                                ],
+            "correct"       :   "A. Temazepam",
+            "explanation"   :   "The correct answer is: A. Temazepam",
+        },
+		{
+            "question"      :   "Q26: An inexperienced member of staff was putting away the stock received in an order and placed some items in the wrong locations on the shelves, resulting in atenolol 25mg tablets and atenolol 100mg tablets being stored together. How could this error have been prevented?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/4/47/Wrong_place_%2827465377801%29.jpg",
+            "choices"       :   [
+                                    "A. Ordering atenolol from different manufacturers with clearer labelling",
+                                    "B. Having a label on the shelf for different strengths",
+                                    "C. Further training for the member of staff",
+                                    "D. All of the above"
+                                ],
+            "correct"       :   "D. All of the above",
+            "explanation"   :   "The correct answer is: D. All of the above",
+        },
+		{
+            "question"      :   "Q27: It is acceptable to use crates of stock to hold the fire door open to make it easier to transport stock into the dispensary.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/9/99/Rectangular_plastic_shipping_crates_in_an_Italian_recycling_plant.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "B. False",
+            "explanation"   :   "The correct answer is: B. False",
+        },
+		{
+            "question"      :   "Q28: A record of CD stock received that requires a CD register entry must be recorded within 24 hours of arrival.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/3/3b/24_hour_Drummonds_Clock.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "B. False",
+            "explanation"   :   "The correct answer is: B. False",
+        },
+		{
+            "question"      :   "Q29: When responding to a Class 1 Drug Alert, which one of the following would be the best course of action?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/f/fc/Red_typhoon_alert_-_China.svg",
+            "choices"       :   [
+                                    "A. Only create records for drug alerts which require action to be taken",
+                                    "B. Immediately discard any affected stock into the pharmacy waste bin",
+                                    "C. Isolate any affected stock",
+                                    "D. Label the affected stock as short-dated"
+                                ],
+            "correct"       :   "C. Isolate any affected stock",
+            "explanation"   :   "The correct answer is: C. Isolate any affected stock",
+        },
+		{
+            "question"      :   "Q30: Unless explicitly stated, CDs in which schedule must be kept in safe custody?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/5/58/CD_rack.JPG",
+            "choices"       :   [
+                                    "A. 1, 3 and 4",
+                                    "B. 3, 4 and 5",
+                                    "C. 1, 2, 3 and 4",
+                                    "D. 1, 2 and 3"
+                                ],
+            "correct"       :   "D. 1, 2 and 3",
+            "explanation"   :   "The correct answer is: D. 1, 2 and 3",
+        },
+		{
+            "question"      :   "Q31: Patient-returned medicines can be returned to stock for future dispensing providing they have not expired.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/9/9e/Expired_CAPTCHA.png",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "B. False",
+            "explanation"   :   "The correct answer is: B. False",
+        },
+        {
+            "question"      :   "Q32: Live stock control systems hold information on the current stock levels.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/0/00/Infooverload.png",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                   
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+        {
+            "question"      :   "Q33: The options below give the item being issued, details of how it is packed and also any labels attached. Identify the most appropriate combination..",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/1/18/Gar%C3%A7on_Wines_Sauvignon_Blanc_10_Flat_Bottle_Case_%28cropped%29.jpg",
+            "choices"       :   [
+                                    "A. Ten pre-filled syringes containing influenza vaccine sent to a hospital clinic from pharmacy stores in a cool box containing a ice pack. There is a label on the outside stating: 'Fragile'.",
+                                    "B. A 500ml bottle of methadone oral solution issued to a hospital ward by the dispensary in a secure padded bag with a tamper evident seal. The bag is labelled 'Item requiring refrigeration - unpack immediately'",
+				    "C. A syringe containing the cytotoxic drug vincristine, prepared by the hospital's aseptic unit being issued to trained staff in a padded sealed package containing an ice pack inside a cool box. The labels attached are 'Cytotoxic' and 'Item requiring refrigeration - unpack immediately'",
+                                    "D. Three boxes of co-dydramol 10/500 tablets each containing 24 tablets issued by a community pharmacy to a registered chiropodist following the receipt of a valid requisition. The boxes are packed in a cool box containing a ice pack with a label on the exterior to say 'Item requiring refrigeration - unpack immediately'"
+                                ],
+            "correct"       :   "C. A syringe containing the cytotoxic drug vincristine, prepared by the hospital's aseptic unit being issued to trained staff in a padded sealed package containing an ice pack inside a cool box. The labels attached are 'Cytotoxic' and 'Item requiring refrigeration - unpack immediately'",
+            "explanation"   :   "The correct answer is: C. A syringe containing the cytotoxic drug vincristine, prepared by the hospital's aseptic unit being issued to trained staff in a padded sealed package containing an ice pack inside a cool box. The labels attached are 'Cytotoxic' and 'Item requiring refrigeration - unpack immediately'",
+        },
+		{
+            "question"      :   "Q34: You are preparing stock to be delivered to your local care home where your pharmacist is due to administer influenza vaccinations to the residents. The delivery contains a fridge-line. Which of the following is an example of the correct delivery process to maintain appropriate cold storage?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/4/4f/Influenza_vaccine_%282021%29_A.jpg",
+            "choices"       :   [
+                                    "A. Using tamper evident seals",
+                                    "B. Using ice packs within the transport boxes",
+                                    "C. Confirm the correct influenza strain has been supplied",
+                                    "D. Pack the vaccines into a pharmacy bag and hand it straight to the pharmacist"
+                                ],
+            "correct"       :   "B. Using ice packs within the transport boxes",
+            "explanation"   :   "The correct answer is: B. Using ice packs within the transport boxes",
+        },
+		{
+            "question"      :   "Q35: Amber glass bottles can protect the product inside from moisture and light.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/b/b6/Amber2.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q36: Supplying stock to the Master of a Ship is an example of wholesale dealing.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/7/72/HoratioNelson1.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q37: Which ONE of the following does NOT need to be considered when counselling patients about their medicines?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/6/6c/Tissot_Abrams_Counsel_to_Sarai.gif",
+            "choices"       :   [
+                                    "A. Patient confidentiality",
+                                    "B. Special storage instructions for the medicines",
+                                    "C. Potential side effects they may experience from using the medicines",
+                                    "D. The cost of the medicines to a patient exempt from prescription charges"
+                                ],
+            "correct"       :   "D. The cost of the medicines to a patient exempt from prescription charges",
+            "explanation"   :   "The correct answer is: D. The cost of the medicines to a patient exempt from prescription charges",
+        },
+		{
+            "question"      :   "Q38: Which of the following statements about liquid medicines is INCORRECT?",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/d/d1/Scotch_whiskies.jpg",
+            "choices"       :   [
+                                    "A. Liquid medicines containing sucrose (sugar) are suitable for diabetic patients",
+                                    "B. All liquid medicine doses should be measured, normally using a 5ml spoon or an oral syringe",
+                                    "C. Liquid medicines may be useful when people have difficulty swallowing tablets",
+                                    "D. Some oral antibiotics are supplied as powders which need to be reconstituted with water"
+                                ],
+            "correct"       :   "A. Liquid medicines containing sucrose (sugar) are suitable for diabetic patients",
+            "explanation"   :   "The correct answer is: A. Liquid medicines containing sucrose (sugar) are suitable for diabetic patients",
+        },
+		{
+            "question"      :   "Q39: Prescribed medicines cannot be handed out to patients when the Responsible Pharmacist is absent, if a second pharmacist is not present.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/0/0d/A_quack_pharmacist%28%3F%29_tying_up_his_pet_monkey._Etching_by_Jo_Wellcome_V0010792.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                    
+                                ],
+            "correct"       :   "A. True",
+            "explanation"   :   "The correct answer is: A. True",
+        },
+		{
+            "question"      :   "Q40: Patients should be advised to store medicines safely away from children and pets; the kitchen is an ideal location.",
+            "image"         :   "https://upload.wikimedia.org/wikipedia/commons/0/06/Youngstown_Kitchens_by_Mullins%2C_1948.jpg",
+            "choices"       :   [
+                                    "A. True",
+                                    "B. False"
+                                   
+                                ],
+            "correct"       :   "B. False",
+            "explanation"   :   "The correct answer is: B. False",
+        },
+
+    ];
+
+
+    /******* No need to edit below this line *********/
+var currentquestion=0,score=0,submt=true,picked;jQuery(document).ready(function(e){function h(i){return e(document.createElement("div")).text(i).html()}function b(k){if(typeof k!=="undefined"&&e.type(k)=="array"){e("#choice-block").empty();for(var j=0;j<k.length;j++){e(document.createElement("li")).addClass("choice choice-box").attr("data-index",j).text(k[j]).appendTo("#choice-block")}}}function d(){submt=true;e("#explanation").empty();e("#question").text(quiz[currentquestion]["question"]);e("#pager").text("Question "+Number(currentquestion+1)+" of "+quiz.length);if(quiz[currentquestion].hasOwnProperty("image")&&quiz[currentquestion]["image"]!=""){if(e("#question-image").length==0){e(document.createElement("img")).addClass("question-image").attr("id","question-image").attr("src",quiz[currentquestion]["image"]).attr("alt",h(quiz[currentquestion]["question"])).insertAfter("#question")}else{e("#question-image").attr("src",quiz[currentquestion]["image"]).attr("alt",h(quiz[currentquestion]["question"]))}}else{e("#question-image").remove()}b(quiz[currentquestion]["choices"]);c()}function f(i){if(quiz[currentquestion]["choices"][i]==quiz[currentquestion]["correct"]){e(".choice").eq(i).css({"background-color":"#50D943"});e("#explanation").html("<strong>Correct!</strong> "+h(quiz[currentquestion]["explanation"]));score++}else{e(".choice").eq(i).css({"background-color":"#D92623"});e("#explanation").html("<strong>Incorrect.</strong> "+h(quiz[currentquestion]["explanation"]))}currentquestion++;e("#submitbutton").html("NEXT QUESTION &raquo;").on("click",function(){if(currentquestion==quiz.length){a()}else{e(this).text("Check Answer").css({color:"#222"}).off("click");d()}})}function c(){e(".choice").on("mouseover",function(){e(this).css({"background-color":"#e1e1e1"})});e(".choice").on("mouseout",function(){e(this).css({"background-color":"#fff"})});e(".choice").on("click",function(){picked=e(this).attr("data-index");e(".choice").removeAttr("style").off("mouseout mouseover");e(this).css({"border-color":"#222","font-weight":700,"background-color":"#c1c1c1"});if(submt){submt=false;e("#submitbutton").css({color:"#000"}).on("click",function(){e(".choice").off("click");e(this).off("click");f(picked)})}})}function a(){e("#explanation").empty();e("#question").empty();e("#choice-block").empty();e("#submitbutton").remove();e("#question").text("You got "+score+" out of "+quiz.length+" correct.");e(document.createElement("h2")).css({"text-align":"center","font-size":"4em"}).text(Math.round(score/quiz.length*100)+"%").insertAfter("#question")}function g(){if(typeof quiztitle!=="undefined"&&e.type(quiztitle)==="string"){e(document.createElement("h1")).text(quiztitle).appendTo("#frame")}else{e(document.createElement("h1")).text("Quiz").appendTo("#frame")}if(typeof quiz!=="undefined"&&e.type(quiz)==="array"){e(document.createElement("p")).addClass("pager").attr("id","pager").text("Question 1 of "+quiz.length).appendTo("#frame");e(document.createElement("h2")).addClass("question").attr("id","question").text(quiz[0]["question"]).appendTo("#frame");if(quiz[0].hasOwnProperty("image")&&quiz[0]["image"]!=""){e(document.createElement("img")).addClass("question-image").attr("id","question-image").attr("src",quiz[0]["image"]).attr("alt",h(quiz[0]["question"])).appendTo("#frame")}e(document.createElement("p")).addClass("explanation").attr("id","explanation").html("&nbsp;").appendTo("#frame");e(document.createElement("ul")).attr("id","choice-block").appendTo("#frame");b(quiz[0]["choices"]);e(document.createElement("div")).addClass("choice-box").attr("id","submitbutton").text("Check Answer").css({"font-weight":700,color:"#222",padding:"30px 0"}).appendTo("#frame");c()}}g()});
+    </script>
+    <style type="text/css" media="all">
+        /*css reset */
+        html,body,div,span,h1,h2,h3,h4,h5,h6,p,code,small,strike,strong,sub,sup,b,u,i{border:0;font-size:100%;font:inherit;vertical-align:baseline;margin:0;padding:0;} 
+        article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block;} 
+        body{line-height:1; font:normal 0.9em/1em "Helvetica Neue", Helvetica, Arial, sans-serif;} 
+        ol,ul{list-style:none;}
+        strong{font-weight:700;}
+        #frame{max-width:620px;width:auto;border:1px solid #ccc;background:#fff;padding:10px;margin:3px;}
+        h1{font:normal bold 2em/1.8em "Helvetica Neue", Helvetica, Arial, sans-serif;text-align:left;border-bottom:1px solid #999;padding:0;width:auto}
+        h2{font:italic bold 1.3em/1.2em "Helvetica Neue", Helvetica, Arial, sans-serif;padding:0;text-align:center;margin:20px 0;}
+        p.pager{margin:5px 0 5px; font:bold 1em/1em "Helvetica Neue", Helvetica, Arial, sans-serif;color:#999;}
+        img.question-image{display:block;max-width:250px;margin:10px auto;border:1px solid #ccc;width:100%;height:auto;}
+        #choice-block{display:block;list-style:none;margin:0;padding:0;}
+        #submitbutton{background:#5a6b8c;}
+        #submitbutton:hover{background:#7b8da6;}
+        #explanation{margin:0 auto;padding:20px;width:75%;}
+        .choice-box{display:block;text-align:center;margin:8px auto;padding:10px 0;border:1px solid #666;cursor:pointer;-webkit-border-radius: 5px;-moz-border-radius: 5px;border-radius: 5px;}
+    </style>
+</head>
+<body><center>
+    <div id="frame" role="content"></div>
+</body>
+</html>
