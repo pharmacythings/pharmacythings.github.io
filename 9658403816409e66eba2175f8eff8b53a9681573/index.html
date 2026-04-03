@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Order System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="date"],
+        input[type="file"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #6c757d;
+            margin-top: 5px;
+        }
+
+        button.secondary:hover {
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 5px;
+            overflow: hidden;
+            font-size: 12px;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        th.bulk-col {
+            background: #28a745;
+        }
+
+        th.packsize-col {
+            background: #ffc107;
+            color: #333;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        td.bulk-col {
+            background: #fffacd;
+            font-weight: 600;
+            color: #333;
+        }
+
+        td.packsize-col {
+            background: #fff8dc;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f0f0f0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal h2 {
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            margin: 10px 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .modal a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .modal a:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 13px;
+            word-wrap: break-word;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info-message {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            display: block !important;
+        }
+
+        .delete-row {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .delete-row:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .preview-csv {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .setup-note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .status-badge.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .hidden-section {
+            display: none;
+        }
+
+        .hidden-codes-section {
+            display: none !important;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-group input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .input-group button {
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            width: auto;
+        }
+
+        .preview-note {
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            background: #fffacd;
+            padding: 8px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            .modal-content {
+                width: 90%;
+                margin: 30% auto;
+            }
+
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group button {
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💊 Pharmacy Order System</h1>
+            <p>Smart lookup system with Google Sheets template</p>
+        </header>
+
+        <div class="content">
+            <!-- Template Setup - HIDDEN BY DEFAULT -->
+            <div class="section full-width hidden-section" id="templateSection">
+                <h2>📋 Step 1: Load Template</h2>
+                <div class="setup-note">
+                    <strong>⚠️ Template auto-loaded!</strong><br>
+                    The standard template header row is automatically loaded on startup.
+                </div>
+
+                <label for="templateData">Paste template header row (optional - to override auto-loaded template):</label>
+                <textarea id="templateData" placeholder="Leave blank to use default template..." rows="2" style="font-family: monospace; font-size: 12px;"></textarea>
+
+                <button onclick="loadTemplate()">📥 Load Custom Template</button>
+                <button class="secondary" onclick="resetToDefaultTemplate()">🔄 Reset to Default</button>
+                <div id="templateStatus" style="margin-top: 10px;"></div>
+            </div>
+
+            <!-- Auto-load Codes from File -->
+            <div class="section full-width">
+                <h2>📂 Load Codes from CSV File</h2>
+                <div class="setup-note">
+                    <strong>⚠️ Quick Setup:</strong><br>
+                    Select your codes CSV file and it will automatically load
+                </div>
+
+                <label for="codesFile">Select Codes CSV File:</label>
+                <input type="file" id="codesFile" accept=".csv" onchange="loadCodesFromFile()">
+                
+                <div id="fileStatus" style="margin-top: 10px;"></div>
+
+                <div id="statusInfo" style="margin-top: 15px;">
+                    <span class="status-badge ready">✅ Template: Auto-loaded (9 columns)</span>
+                    <span class="status-badge pending">⏳ Codes: Not loaded</span>
+                </div>
+            </div>
+
+            <!-- Codes Database Setup (Manual Paste) -->
+            <div class="section full-width hidden-codes-section" id="codesSection">
+                <h2>📊 Load Codes Database (Manual Paste)</h2>
+                <div class="setup-note">
+                    <strong>⚠️ Alternative method:</strong><br>
+                    Paste codes data directly if you prefer not to use a file
+                </div>
+
+                <label for="codesData">Paste codes sheet data:</label>
+                <textarea id="codesData" placeholder="Paste codes sheet data here..." rows="3" style="font-family: monospace; font-size: 12px;"></textarea>
+
+                <button onclick="loadCodesDatabase()">📥 Load Codes Database</button>
+                <div id="codesStatus" style="margin-top: 10px;"></div>
+            </div>
+
+            <!-- Order Entry Section -->
+            <div class="section">
+                <h2>📝 Add New Order</h2>
+                <div class="success-message message" id="successMessage"></div>
+                <div class="error-message message" id="errorMessage"></div>
+
+                <label for="itemCode">Enter Item Code (Canister):</label>
+                <div class="input-group">
+                    <input type="text" id="itemCode" placeholder="Type canister number here..." onkeypress="handleItemCodeKeypress(event)">
+                    <button onclick="lookupItemCode()" id="lookupBtn" disabled style="width: auto; padding: 10px 20px;">🔍 Lookup</button>
+                </div>
+
+                <div id="itemPreview" style="background: #e8f4f8; padding: 10px; border-radius: 5px; margin-top: 10px; display: none; font-size: 12px; line-height: 1.6;">
+                    <strong>Preview:</strong><br>
+                    <span id="previewText"></span>
+                    <div class="preview-note" id="previewNote"></div>
+                </div>
+
+                <button onclick="addRow()" id="addRowBtn" disabled>➕ Add Row to Order</button>
+                <button class="secondary" onclick="clearForm()">🔄 Clear Input</button>
+            </div>
+
+            <!-- Current Orders Table Section -->
+            <div class="section full-width">
+                <h2>📋 Current Orders</h2>
+                <p style="color: #666; font-size: 12px; margin-bottom: 10px;" id="columnInfo">
+                    Load template to see columns
+                </p>
+                <div class="table-wrapper">
+                    <div id="sourceTableContainer" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+
+                <div style="margin-top: 15px; padding: 10px; background: #e8f4f8; border-radius: 5px; font-size: 11px;">
+                    <strong>📊 CSV Preview:</strong>
+                    <div class="preview-csv" id="csvPreview">No orders yet</div>
+                </div>
+            </div>
+
+            <!-- Archive Section -->
+            <div class="section full-width">
+                <h2>📦 Sent Orders Archive</h2>
+                <div class="table-wrapper">
+                    <div id="archiveTableContainer" style="max-height: 300px; overflow-y: auto;"></div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="section">
+                <h2>⚙️ Settings</h2>
+
+
+
+                <label for="pharmacyUrl">PharmacyBuyer URL:</label>
+                <input type="text" id="pharmacyUrl" value="https://www.pharmacybuyer.net/Prosperro_V3/importexport/IO_Main.aspx">
+
+                <button onclick="saveSettings()">💾 Save Settings</button>
+                <button class="secondary" onclick="toggleTemplateSection()">📝 Edit Template</button>
+                <button class="secondary" onclick="showCodesSection()">📊 Load Codes Manually</button>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="section">
+                <h2>🚀 Actions</h2>
+                <div class="info-message">
+                    Ready to download your order? Click the button below to generate and download your CSV file.
+                </div>
+
+                <button onclick="moveAndDownloadData()" id="sendOrderBtn" disabled>📥 Download Order & Move to Archive</button>
+                <button class="danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+
+                <h3 style="margin-top: 20px; color: #333;">Quick Links</h3>
+                <button class="secondary" onclick="downloadSourceAsCSV()" id="downloadBtn" disabled>📥 Download Current Orders (CSV)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Dialog -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>✅ Order Downloaded Successfully!</h2>
+            <div id="modalBody"></div>
+            <button onclick="closeModal()" style="margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Default template header row - extended to include all columns
+        const DEFAULT_TEMPLATE_HEADERS = ['Branch Code', 'Product code', 'Order Quantity', 'Product name', 'Sell price', 'Or Daily Standing Order up to Amount', 'Dispatch', 'Notes', 'Details'];
+
+        // CSV/Tab-separated parsing
+        function parseData(text) {
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+            if (lines.length === 0) return [];
+
+            // Detect delimiter - check first non-empty line
+            let delimiter = '\t';
+            if (lines[0] && !lines[0].includes('\t') && lines[0].includes(',')) {
+                delimiter = ',';
+            }
+
+            return lines.map(line => {
+                const cells = [];
+                let current = '';
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const next = line[i + 1];
+
+                    if (char === '"') {
+                        if (inQuotes && next === '"') {
+                            current += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if ((char === delimiter || char === ',') && !inQuotes) {
+                        cells.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                cells.push(current.trim());
+                return cells;
+            });
+        }
+
+        // XLOOKUP Implementation
+        function xlookup(lookupValue, lookupArray, returnArray, ifNotFound = '') {
+            if (!lookupValue) return ifNotFound;
+            for (let i = 0; i < lookupArray.length; i++) {
+                if (String(lookupArray[i]).trim() === String(lookupValue).trim()) {
+                    return returnArray[i] || ifNotFound;
+                }
+            }
+            return ifNotFound;
+        }
+
+        // Data store
+        class DataStore {
+            constructor() {
+                this.sourceData = JSON.parse(localStorage.getItem('sourceData')) || [];
+                this.archiveData = JSON.parse(localStorage.getItem('archiveData')) || [];
+                this.templateColumns = JSON.parse(localStorage.getItem('templateColumns')) || [];
+                this.codesData = JSON.parse(localStorage.getItem('codesData')) || null;
+                this.settings = JSON.parse(localStorage.getItem('settings')) || {
+                    emailRecipient: 'poupeeducire@gmail.com',
+                    pharmacyUrl: 'https://www.pharmacybuyer.net/Prosperro_V3/importexport/IO_Main.aspx'
+                };
+            }
+
+            save() {
+                localStorage.setItem('sourceData', JSON.stringify(this.sourceData));
+                localStorage.setItem('archiveData', JSON.stringify(this.archiveData));
+                localStorage.setItem('templateColumns', JSON.stringify(this.templateColumns));
+                localStorage.setItem('codesData', JSON.stringify(this.codesData));
+                localStorage.setItem('settings', JSON.stringify(this.settings));
+            }
+
+            setTemplateColumns(columns) {
+                this.templateColumns = columns;
+                this.save();
+            }
+
+            setCodesData(data) {
+                this.codesData = data;
+                this.save();
+            }
+
+            addSourceRow(row) {
+                this.sourceData.push(row);
+                this.save();
+            }
+
+            moveToArchive() {
+                this.archiveData.unshift(...this.sourceData);
+                this.sourceData = [];
+                this.save();
+            }
+
+            clearAllData() {
+                this.sourceData = [];
+                this.archiveData = [];
+                this.save();
+            }
+
+            deleteSourceRow(index) {
+                this.sourceData.splice(index, 1);
+                this.save();
+            }
+
+            getSettings() {
+                return this.settings;
+            }
+
+            updateSettings(settings) {
+                this.settings = settings;
+                this.save();
+            }
+        }
+
+        const store = new DataStore();
+
+        // Initialize
+        window.addEventListener('load', () => {
+            // FORCE RESET: Clear old template and use 9 columns
+            localStorage.removeItem('templateColumns');
+            store.templateColumns = [];
+            
+            loadDefaultTemplate();
+            loadSettings();
+            renderTables();
+            updateStatusInfo();
+        });
+
+        function loadDefaultTemplate() {
+            if (store.templateColumns.length === 0) {
+                store.setTemplateColumns(DEFAULT_TEMPLATE_HEADERS);
+                updateColumnInfo();
+            }
+        }
+
+        function toggleTemplateSection() {
+            const section = document.getElementById('templateSection');
+            section.classList.toggle('hidden-section');
+        }
+
+        function showCodesSection() {
+            const codesSection = document.getElementById('codesSection');
+            codesSection.classList.remove('hidden-codes-section');
+            document.getElementById('codesData').value = '';
+            document.getElementById('codesData').focus();
+        }
+
+        function resetToDefaultTemplate() {
+            store.setTemplateColumns(DEFAULT_TEMPLATE_HEADERS);
+            updateColumnInfo();
+            updateStatusInfo();
+            document.getElementById('templateData').value = '';
+            document.getElementById('templateStatus').innerHTML = '<div class="success-message message" style="display: block; margin: 0;">✅ Reset to default template with 9 columns</div>';
+            setTimeout(() => {
+                document.getElementById('templateStatus').innerHTML = '';
+            }, 3000);
+        }
+
+        function updateStatusInfo() {
+            const statusInfo = document.getElementById('statusInfo');
+            const codesSection = document.getElementById('codesSection');
+            const templateStatus = store.templateColumns.length > 0 
+                ? '<span class="status-badge ready">✅ Template: Loaded (' + store.templateColumns.length + ' columns)</span>' 
+                : '<span class="status-badge pending">⏳ Template: Not loaded</span>';
+            const codesStatus = store.codesData 
+                ? '<span class="status-badge ready">✅ Codes: Loaded (' + store.codesData.rows.length + ' items)</span>' 
+                : '<span class="status-badge pending">⏳ Codes: Not loaded</span>';
+            statusInfo.innerHTML = templateStatus + codesStatus;
+
+            // Hide manual codes section if codes are loaded
+            if (store.codesData) {
+                codesSection.classList.add('hidden-codes-section');
+            } else {
+                codesSection.classList.remove('hidden-codes-section');
+            }
+
+            const systemReady = store.templateColumns.length > 0 && store.codesData;
+            document.getElementById('lookupBtn').disabled = !systemReady;
+            document.getElementById('addRowBtn').disabled = true;
+            document.getElementById('sendOrderBtn').disabled = store.sourceData.length === 0;
+            document.getElementById('downloadBtn').disabled = store.sourceData.length === 0;
+        }
+
+        // Load codes from CSV file
+        function loadCodesFromFile() {
+            const fileInput = document.getElementById('codesFile');
+            const statusDiv = document.getElementById('fileStatus');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                statusDiv.innerHTML = '<div class="error-message message" style="display: block; margin: 0;">❌ No file selected</div>';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    const lines = parseData(csv);
+                    
+                    if (lines.length < 2) throw new Error('CSV needs headers + data rows');
+
+                    const headers = lines[0].map(h => h.replace(/"/g, ''));
+                    
+                    const rows = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const row = {};
+                        lines[i].forEach((cell, idx) => {
+                            const headerName = headers[idx] || `Column_${idx}`;
+                            row[headerName] = cell.replace(/"/g, '');
+                        });
+                        if (Object.values(row).some(v => v && v.trim())) {
+                            rows.push(row);
+                        }
+                    }
+
+                    if (rows.length === 0) throw new Error('No valid data rows found');
+
+                    store.setCodesData({
+                        headers: headers,
+                        rows: rows
+                    });
+
+                    updateStatusInfo();
+                    statusDiv.innerHTML = `<div class="success-message message" style="display: block; margin: 0;">✅ Loaded ${rows.length} items from ${file.name}</div>`;
+                    
+                    // Clear the file input
+                    fileInput.value = '';
+                    
+                } catch (error) {
+                    console.error('Error loading file:', error);
+                    statusDiv.innerHTML = `<div class="error-message message" style="display: block; margin: 0;">❌ Error: ${error.message}</div>`;
+                }
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Load template
+        function loadTemplate() {
+            const data = document.getElementById('templateData').value.trim();
+            const statusDiv = document.getElementById('templateStatus');
+
+            if (!data) {
+                statusDiv.innerHTML = '<div class="error-message message" style="display: block; margin: 0;">❌ Please paste template data</div>';
+                return;
+            }
+
+            try {
+                const lines = parseData(data);
+                if (lines.length === 0) throw new Error('No data to parse');
+
+                const headers = lines[0].map(h => h.replace(/"/g, ''));
+                store.setTemplateColumns(headers);
+                updateColumnInfo();
+                updateStatusInfo();
+
+                statusDiv.innerHTML = `<div class="success-message message" style="display: block; margin: 0;">✅ Template loaded with ${headers.length} columns</div>`;
+                document.getElementById('templateData').value = '';
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error-message message" style="display: block; margin: 0;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function updateColumnInfo() {
+            const info = document.getElementById('columnInfo');
+            if (store.templateColumns.length > 0) {
+                info.textContent = `ℹ️ Columns (${store.templateColumns.length}): ${store.templateColumns.join(' | ')}`;
+            }
+        }
+
+        // Load codes database (manual paste)
+        function loadCodesDatabase() {
+            const data = document.getElementById('codesData').value.trim();
+            const statusDiv = document.getElementById('codesStatus');
+
+            if (!data) {
+                statusDiv.innerHTML = '<div class="error-message message" style="display: block; margin: 0;">❌ Please paste codes data</div>';
+                return;
+            }
+
+            try {
+                const lines = parseData(data);
+                
+                if (lines.length < 2) throw new Error('Codes sheet needs headers + data rows. Got ' + lines.length + ' line(s)');
+
+                const headers = lines[0].map(h => h.replace(/"/g, ''));
+                
+                const rows = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = {};
+                    lines[i].forEach((cell, idx) => {
+                        const headerName = headers[idx] || `Column_${idx}`;
+                        row[headerName] = cell.replace(/"/g, '');
+                    });
+                    if (Object.values(row).some(v => v && v.trim())) {
+                        rows.push(row);
+                    }
+                }
+
+                if (rows.length === 0) throw new Error('No valid data rows found. Check your data format.');
+
+                store.setCodesData({
+                    headers: headers,
+                    rows: rows
+                });
+
+                updateStatusInfo();
+
+                statusDiv.innerHTML = `<div class="success-message message" style="display: block; margin: 0;">✅ Loaded ${rows.length} items from codes database</div>`;
+                document.getElementById('codesData').value = '';
+            } catch (error) {
+                console.error('Error loading codes:', error);
+                statusDiv.innerHTML = `<div class="error-message message" style="display: block; margin: 0;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function handleItemCodeKeypress(event) {
+            if (event.key === 'Enter') {
+                lookupItemCode();
+            }
+        }
+
+        function lookupItemCode() {
+            const itemCode = document.getElementById('itemCode').value.trim();
+            const previewDiv = document.getElementById('itemPreview');
+            const previewText = document.getElementById('previewText');
+            const previewNote = document.getElementById('previewNote');
+            const errorMsg = document.getElementById('errorMessage');
+
+            if (!itemCode) {
+                errorMsg.textContent = '❌ Please enter an item code!';
+                errorMsg.style.display = 'block';
+                previewDiv.style.display = 'none';
+                document.getElementById('addRowBtn').disabled = true;
+                return;
+            }
+
+            if (!store.codesData) {
+                errorMsg.textContent = '❌ Please load codes database first!';
+                errorMsg.style.display = 'block';
+                previewDiv.style.display = 'none';
+                document.getElementById('addRowBtn').disabled = true;
+                return;
+            }
+
+            const lookupData = applyLookupFormulas(itemCode);
+            if (lookupData.error) {
+                errorMsg.textContent = `❌ ${lookupData.error}`;
+                errorMsg.style.display = 'block';
+                previewDiv.style.display = 'none';
+                document.getElementById('addRowBtn').disabled = true;
+                return;
+            }
+
+            errorMsg.style.display = 'none';
+
+            let previewHtml = '';
+            store.templateColumns.forEach((col) => {
+                const value = lookupData[col] || '';
+                previewHtml += `<strong>${col}:</strong> ${escapeHtml(String(value))}<br>`;
+            });
+
+            previewText.innerHTML = previewHtml;
+
+            // Show BULK column from codes data
+            const bulkValue = lookupData.bulkValue || '';
+            if (bulkValue) {
+                previewNote.innerHTML = `📌 <strong>BULK:</strong> ${escapeHtml(String(bulkValue))}`;
+                previewNote.style.display = 'block';
+            } else {
+                previewNote.style.display = 'none';
+            }
+
+            previewDiv.style.display = 'block';
+            document.getElementById('addRowBtn').disabled = false;
+        }
+
+        function addRow() {
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+
+            if (store.templateColumns.length === 0 || !store.codesData) {
+                errorMsg.textContent = '❌ Please load template and codes first!';
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+                return;
+            }
+
+            const itemCode = document.getElementById('itemCode').value.trim();
+
+            if (!itemCode) {
+                errorMsg.textContent = '❌ Please enter an item code!';
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+                return;
+            }
+
+            const row = applyLookupFormulas(itemCode);
+
+            if (row.error) {
+                errorMsg.textContent = `❌ ${row.error}`;
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+                return;
+            }
+
+            store.addSourceRow(row);
+            successMsg.textContent = '✅ Row added!';
+            successMsg.style.display = 'block';
+            errorMsg.style.display = 'none';
+
+            clearForm();
+            renderTables();
+            updateStatusInfo();
+        }
+
+        function applyLookupFormulas(itemCode) {
+            const headers = store.codesData.headers;
+            const rows = store.codesData.rows;
+
+            const itemCodeColumnIdx = 4; // Canister column
+
+            const matchingRow = rows.find(r => {
+                const cellValue = r[headers[itemCodeColumnIdx]];
+                return String(cellValue).trim() === String(itemCode).trim();
+            });
+
+            if (!matchingRow) {
+                return { error: 'Item code not found' };
+            }
+
+            const resultRow = {};
+
+            // Map each template column to the appropriate value
+            for (let i = 0; i < store.templateColumns.length; i++) {
+                const col = store.templateColumns[i];
+                let value = '';
+
+                if (col === 'Branch Code') {
+                    value = 'BPOU';
+                } else if (col === 'Product code') {
+                    value = xlookup(itemCode, rows.map(r => r[headers[4]]), rows.map(r => r[headers[2]]));
+                } else if (col === 'Order Quantity') {
+                    value = xlookup(itemCode, rows.map(r => r[headers[4]]), rows.map(r => r[headers[7]]));
+                } else if (col === 'Product name') {
+                    value = xlookup(itemCode, rows.map(r => r[headers[4]]), rows.map(r => r[headers[0]]));
+                } else if (col === 'Sell price') {
+                    value = xlookup(itemCode, rows.map(r => r[headers[4]]), rows.map(r => r[headers[9]]));
+                } else if (col === 'Or Daily Standing Order up to Amount') {
+                    value = 1;
+                } else if (col === 'Dispatch') {
+                    value = 'y';
+                } else if (col === 'Notes') {
+                    value = '';
+                } else if (col === 'Details') {
+                    value = '';
+                }
+
+                resultRow[col] = value;
+            }
+
+            resultRow.bulkValue = matchingRow[headers[8]] || '';
+            resultRow.canisters = itemCode;
+            resultRow.packSize = matchingRow[headers[1]] || '';
+
+            return resultRow;
+        }
+
+        function clearForm() {
+            document.getElementById('itemCode').value = '';
+            document.getElementById('itemPreview').style.display = 'none';
+            document.getElementById('itemCode').focus();
+        }
+
+        function deleteSourceRow(index) {
+            if (confirm('Delete this row?')) {
+                store.deleteSourceRow(index);
+                renderTables();
+                updateStatusInfo();
+            }
+        }
+
+        function renderTables() {
+            const sourceContainer = document.getElementById('sourceTableContainer');
+            const archiveContainer = document.getElementById('archiveTableContainer');
+            const csvPreview = document.getElementById('csvPreview');
+
+            const columns = store.templateColumns;
+
+            // Render source table
+            if (store.sourceData.length === 0) {
+                sourceContainer.innerHTML = '<div class="empty-state">📭 No orders yet</div>';
+                csvPreview.textContent = 'No orders yet';
+            } else {
+                let table = '<table><thead><tr>';
+                table += '<th style="background: #ff6b6b;">Canister</th>';
+                table += '<th class="packsize-col">Pack Size</th>';
+                columns.forEach(col => table += `<th>${escapeHtml(col)}</th>`);
+                table += '<th class="bulk-col">BULK</th>';
+                table += '<th>Action</th></tr></thead><tbody>';
+
+                store.sourceData.forEach((row, index) => {
+                    table += '<tr>';
+                    table += `<td style="background: #ffe0e0; font-weight: 600;">${escapeHtml(String(row.canisters || ''))}</td>`;
+                    table += `<td class="packsize-col">${escapeHtml(String(row.packSize || ''))}</td>`;
+                    columns.forEach(col => table += `<td>${escapeHtml(String(row[col] || ''))}</td>`);
+                    table += `<td class="bulk-col">${escapeHtml(String(row.bulkValue || ''))}</td>`;
+                    table += `<td><button class="delete-row" onclick="deleteSourceRow(${index})">Delete</button></td></tr>`;
+                });
+                table += '</tbody></table>';
+                sourceContainer.innerHTML = table;
+
+                csvPreview.textContent = generateCSV(store.sourceData);
+            }
+
+            // Render archive table
+            if (store.archiveData.length === 0) {
+                archiveContainer.innerHTML = '<div class="empty-state">📭 No archive</div>';
+            } else {
+                let table = '<table><thead><tr>';
+                table += '<th style="background: #ff6b6b;">Canister</th>';
+                table += '<th class="packsize-col">Pack Size</th>';
+                columns.forEach(col => table += `<th>${escapeHtml(col)}</th>`);
+                table += '<th class="bulk-col">BULK</th></tr></thead><tbody>';
+
+                store.archiveData.slice(0, 30).forEach(row => {
+                    table += '<tr>';
+                    table += `<td style="background: #ffe0e0; font-weight: 600;">${escapeHtml(String(row.canisters || ''))}</td>`;
+                    table += `<td class="packsize-col">${escapeHtml(String(row.packSize || ''))}</td>`;
+                    columns.forEach(col => table += `<td>${escapeHtml(String(row[col] || ''))}</td>`);
+                    table += `<td class="bulk-col">${escapeHtml(String(row.bulkValue || ''))}</td>`;
+                    table += '</tr>';
+                });
+                table += '</tbody></table>';
+                archiveContainer.innerHTML = table;
+            }
+        }
+
+        function generateCSV(data) {
+            const columns = store.templateColumns;
+            let csv = columns.join(',') + '\r\n';
+
+            data.forEach(row => {
+                const csvRow = columns.map(col => {
+                    const value = String(row[col] || '').replace(/\r?\n/g, ' ');
+                    return value;
+                }).join(',');
+                csv += csvRow + '\r\n';
+            });
+
+            return csv;
+        }
+
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function moveAndDownloadData() {
+            if (store.sourceData.length === 0) {
+                alert('❌ No data!');
+                return;
+            }
+
+            const csv = generateCSV(store.sourceData);
+            const settings = store.getSettings();
+            const now = new Date();
+            const filename = `daily_stock_order_${now.toISOString().slice(0, 19).replace(/[-:T]/g, '')}`.slice(0, -2) + '.csv';
+            
+            // Download the CSV file
+            downloadCSV(csv, filename);
+            
+            // Move to archive
+            store.moveToArchive();
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <p>✅ Order file downloaded successfully!</p>
+                <p>📁 File: <strong>${filename}</strong></p>
+                <p style="color: #ff6b6b; margin-top: 15px;"><strong>📧 Remember to email this file to:</strong></p>
+                <p style="color: #333; font-weight: 600;">${settings.emailRecipient}</p>
+                <hr style="margin: 15px 0;">
+                <p><a href="${settings.pharmacyUrl}" target="_blank">🌐 Open PharmacyBuyer →</a></p>
+            `;
+            document.getElementById('actionModal').style.display = 'block';
+
+            renderTables();
+            updateStatusInfo();
+        }
+
+        function downloadSourceAsCSV() {
+            if (store.sourceData.length === 0) {
+                alert('❌ No data!');
+                return;
+            }
+
+            const csv = generateCSV(store.sourceData);
+            const filename = `current_orders_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(csv, filename);
+        }
+
+        function saveSettings() {
+            const settings = {
+                emailRecipient: document.getElementById('emailRecipient').value,
+                pharmacyUrl: document.getElementById('pharmacyUrl').value
+            };
+            store.updateSettings(settings);
+            alert('✅ Settings saved!');
+        }
+
+        function loadSettings() {
+            const settings = store.getSettings();
+            document.getElementById('emailRecipient').value = settings.emailRecipient;
+            document.getElementById('pharmacyUrl').value = settings.pharmacyUrl;
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Clear all orders?')) {
+                store.clearAllData();
+                renderTables();
+                updateStatusInfo();
+                alert('✅ Cleared!');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('actionModal').style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('actionModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
