@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Scan - Hub Usage Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .upload-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 2px dashed #667eea;
+        }
+        
+        .upload-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .file-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .upload-status {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            font-size: 14px;
+        }
+        
+        .upload-status.show {
+            display: block;
+        }
+        
+        .upload-success {
+            background-color: #efe;
+            border-left: 4px solid #0a0;
+            color: #0a0;
+        }
+        
+        .upload-error {
+            background-color: #fee;
+            border-left: 4px solid #c00;
+            color: #c00;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .input-wrapper {
+            position: relative;
+            width: 300px;
+        }
+        
+        input[type="text"] {
+            padding: 12px 15px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 5px rgba(118, 75, 162, 0.3);
+        }
+        
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .autocomplete-list.active {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .autocomplete-item:hover {
+            background-color: #f0f4ff;
+        }
+        
+        .autocomplete-item.selected {
+            background-color: #e8ecff;
+        }
+        
+        .autocomplete-item strong {
+            color: #667eea;
+        }
+        
+        .autocomplete-count {
+            padding: 8px 15px;
+            font-size: 12px;
+            color: #999;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+        }
+        
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        
+        .btn-clear {
+            background: #999;
+        }
+        
+        .btn-clear:hover {
+            box-shadow: 0 5px 20px rgba(153, 153, 153, 0.4);
+        }
+        
+        .btn-all {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .btn-all:hover {
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+        
+        .info-text {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .result-count {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 3px solid #667eea;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        
+        th:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3a91 100%);
+        }
+        
+        th.sortable::after {
+            content: " ↕";
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        
+        th.sorted-asc::after {
+            content: " ↑";
+            opacity: 1;
+        }
+        
+        th.sorted-desc::after {
+            content: " ↓";
+            opacity: 1;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+        
+        .error {
+            background-color: #fee;
+            border-left: 4px solid #c00;
+            padding: 15px;
+            border-radius: 5px;
+            color: #c00;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background-color: #efe;
+            border-left: 4px solid #0a0;
+            padding: 15px;
+            border-radius: 5px;
+            color: #0a0;
+            margin-bottom: 20px;
+        }
+        
+        .search-tips {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 14px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .pagination-info {
+            margin-top: 15px;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .db-status {
+            text-align: center;
+            padding: 10px;
+            background: #f0f4ff;
+            border-radius: 5px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .sort-indicator {
+            font-size: 11px;
+            margin-top: 5px;
+            color: #666;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Stock Scan - Hub Usage</h1>
+        
+        <div class="upload-section">
+            <h3>📤 Load CSV File</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Upload your "Stock scan - Hub Usage.csv" file to populate the database with all 852 products.</p>
+            <div class="file-input-wrapper">
+                <input type="file" id="csvFile" accept=".csv" />
+                <button class="btn-upload" onclick="loadCSV()">📁 Load CSV</button>
+            </div>
+            <div class="upload-status" id="uploadStatus"></div>
+        </div>
+        
+        <div class="db-status" id="dbStatus">
+            📊 Database: 0 products loaded | Ready for file upload
+        </div>
+        
+        <div class="search-tips">
+            <strong>💡 How to use:</strong> 
+            <br/>1. Upload your CSV file using the button above
+            <br/>2. Start typing a product name to see all matching options
+            <br/>3. Click any suggestion to view full product data
+            <br/>4. Click column headers to sort by that column (↑ ascending, ↓ descending)
+            <br/>5. Use "Show All" to display all products
+        </div>
+        
+        <div class="search-box">
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Type to search... (e.g., 'Amox', 'Ator')"
+                    autocomplete="off"
+                    disabled
+                >
+                <div class="autocomplete-list" id="autocompleteList"></div>
+            </div>
+            <button id="searchBtn" onclick="searchProducts()" disabled>🔍 Search</button>
+            <button id="showAllBtn" onclick="showAll()" class="btn-all" disabled>📋 Show All</button>
+            <button onclick="clearSearch()" class="btn-clear">Clear</button>
+        </div>
+        
+        <div class="info-text">
+            Upload a CSV file first • Type to filter • Click suggestion to select • Click headers to sort
+        </div>
+        
+        <div id="message"></div>
+        <div class="results" id="results"></div>
+        <div class="pagination-info" id="paginationInfo"></div>
+        <div class="sort-indicator" id="sortIndicator"></div>
+    </div>
+
+    <script>
+        // HARDCODED CSV DATA - Replace with your actual CSV content
+        const CSV_DATA = `PRODUCT,VMP,USAGE,CANISTER,MARCH,FEBRUARY,JANUARY,DECEMBER,NOVEMBER,OCTOBER,SEPTEMBER,AUGUST,JULY,JUNE,MAY,APRIL,APR25-JAN26
+Acamprosate 333mg gastro-resistant tablets,42267511000001104,3076,179,3076,2734,2380,2731,2270,3092,2436,2044,2044,2660,2996,2660,
+Accrete D3 tablets,19510411000001102,2092,502,2092,1906,2630,3024,2721,3105,2877,3264,2556,2878,3293,3076,
+Aciclovir 400mg tablets,41485611000001107,56,FSP1,56,56,56,98,56,56,56,56,56,56,56,112,
+Acrivastine 8mg caps,42184011000001104,84,FSP1,84,84,84,84,84,84,167,84,,168,84,84,
+Adcal-D3 750mg/200unit caplets,19368411000001103,1582,531,1582,1552,1455,1680,1462,1668,1792,1337,1456,1343,1568,1344,
+Adcal-D3 Caplets 750 mg + 5 micrograms,19368411000001103,112,FSP1,112,136,112,,112,224,112,112,112,112,112,112,
+Adizem-SR 90mg caps,2887011000001102,56,FSP1,56,56,56,56,56,56,56,112,56,56,56,56,
+Adizem-XL 180mg caps,2938011000001101,28,FSP1,28,28,,56,28,28,28,28,28,28,56,,
+Adoport 1mg caps,18044411000001102,56,FSP1,56,66,56,50,56,112,56,56,56,,,56,
+Alendronic acid 70mg tablets,39731311000001108,32,322,32,24,32,36,35,40,44,48,32,36,36,36,
+Alfacalcidol 1microgram caps,41980211000001103,56,FSP1,56,60,56,56,56,54,84,31,53,56,28,56,
+Alfacalcidol 250nanogram caps,41980311000001106,56,FSP1,56,56,56,112,140,84,168,140,111,168,112,84,
+Alfacalcidol 500nanogram caps,41980511000001100,55,FSP1,55,28,28,26,84,56,84,84,84,84,112,84,
+Alfuzosin 10mg modified-release tablets,17328111000001107,84,FSP1,84,28,28,56,28,28,56,84,56,84,168,84,
+Alfuzosin 2.5mg tablets,42030911000001107,,,,,,,,,,,55,56,,,
+Allopurinol 100mg tablets,42099411000001101,2607,235,2607,1980,2274,2310,2196,2445,2268,2587,2113,2408,2584,2044,
+Allopurinol 300mg tablets,42099511000001102,1264,157,1264,1135,1181,1253,952,1204,1101,1198,1068,1218,1232,999,
+Alogliptin 25mg tablets,23637411000001103,224,209,224,168,168,168,196,333,394,362,392,336,364,334,
+Alverine 120mg caps,42351311000001101,28,FSP1,28,28,56,28,28,28,28,28,28,28,56,28,
+Alverine 60mg caps,42351411000001108,56,60,56,56,56,,,,84,84,84,84,84,84,
+Amantadine 100mg caps,42031011000001104,196,FSP1,196,84,140,86,140,196,168,140,111,140,140,28,
+Amiloride 5mg tablets,42206111000001106,112,FSP1,112,84,84,84,84,84,84,112,84,84,112,56,
+Amiodarone 100mg tablets,42290911000001108,28,255,28,28,28,56,56,84,56,56,56,77,56,56,
+Amiodarone 200mg tablets,42291011000001100,84,323,84,112,84,112,84,112,140,56,28,28,28,28,
+Amisulpride 100mg tablets,42267611000001100,532,122,532,420,420,394,420,392,556,504,448,375,518,448,
+Amisulpride 200mg tablets,42267711000001109,871,40,871,672,980,701,728,924,1000,924,924,811,1305,756,
+Amisulpride 400mg tablets,42267811000001101,56,FSP1,56,56,56,56,56,224,112,112,112,112,110,112,
+Amisulpride 50mg tablets,42267911000001106,112,FSP1,112,112,222,168,167,112,212,143,166,224,168,168,
+Amitriptyline 10mg tablets,42291111000001104,5599,296,5599,4612,4571,5135,4845,5502,6100,6034,4970,5450,6441,4774,
+Amitriptyline 25mg tablets,42291211000001105,4100,52,4100,3138,3573,3669,3472,3901,3858,4160,3482,3893,4842,3759,
+Amitriptyline 50mg tablets,42291311000001102,1845,131,1845,1630,1313,1986,1637,1897,1919,1779,1698,1626,2044,1754,
+Amlodipine 10mg tablets,39731911000001109,5551,175,5551,4365,4930,5077,4465,5401,5237,5284,4487,5023,5366,4797,
+Amlodipine 2.5mg tablets,42206211000001100,28,FSP1,28,34,28,28,56,112,56,56,56,56,56,56,
+Amlodipine 5mg tablets,39732011000001102,6817,340,6817,5090,5799,6499,5565,6524,6604,6393,5046,6069,7077,5436,
+Amoxicillin 250mg caps,39732311000001104,56,FSP1,56,54,112,,,,,,,,,28,
+Amoxicillin 500mg caps,39732411000001106,,,,,,58,28,28,63,56,56,28,112,112,
+Anastrozole 1mg tablets,41872011000001105,56,FSP1,56,28,28,28,27,28,28,28,28,28,28,28,
+Angitil SR 120 caps,298811000001103,224,FSP1,224,118,224,167,168,168,112,112,168,168,168,112,
+Angitil XL 240 caps,75111000001104,,,,,,,,,,,,,28,28,
+Apixaban 2.5mg tablets,42206411000001101,3142,224,3142,2650,2912,3012,2912,3726,3752,3461,3173,3360,4084,3017,
+Apixaban 5mg tablets,42206511000001102,7430,335,7430,5643,5951,6058,5919,7460,6191,6844,5524,6558,7026,5515,
+Aripiprazole 10mg tablets,42268111000001109,644,159,644,504,594,418,532,700,588,588,420,420,420,364,
+Aripiprazole 15mg tablets,42268211000001103,329,254,329,280,266,266,280,441,581,336,365,364,406,294,
+Aripiprazole 1mg tablets,44050811000001109,56,FSP1,56,56,54,54,56,84,28,28,,,,,
+aripiprazole 2.5mg tablets,44050911000001104,56,FSP1,56,56,28,28,,1,56,28,28,56,,,
+Aripiprazole 30mg tablets,42268411000001104,28,FSP1,28,28,28,28,28,28,56,28,56,56,84,56,
+Aripiprazole 5mg tablets,42268511000001100,630,311,630,583,602,672,661,769,767,714,602,590,887,798,
+Asacol 800mg modified-release gastro-resistant tablets,13255311000001101,,,,,,,,168,84,84,84,84,84,28,
+Ascorb 500mg tablets,35479311000001109,,,,,,,,,,56,54,56,56,56,
+Ascorbic acid 500mg tablets,41981211000001109,28,FSP1,28,28,84,,224,112,56,,56,168,156,168,
+Aspirin 75mg dispersible tablets,42291811000001106,12532,349,12532,10114,11329,12161,10713,12818,12760,11834,10217,11551,12454,10247,
+Aspirin 75mg gastro-resistant tablets,42291911000001101,336,216,336,370,308,364,392,364,392,364,308,308,336,252,
+Aspirin 75mg tablets,42292011000001108,196,307,196,168,196,252,250,231,252,224,168,196,259,224,
+Atenolol 100mg tablets,42370411000001101,429,298,429,288,364,347,367,462,429,368,448,413,392,280,
+Atenolol 25mg tablets,42370611000001103,1240,285,1240,977,1092,1450,1233,1594,1442,1260,1176,1258,1319,1260,
+Atenolol 50mg tablets,42370711000001107,1408,226,1408,1067,1145,1193,1187,1531,1636,1617,1257,1261,1616,1161,
+Atogepant 60mg tablets,42308011000001101,28,FSP1,28,84,28,28,28,28,28,56,28,28,28,28,
+Atomoxetine 10mg caps,42008411000001106,,FSP1,,112,112,222,,224,112,112,112,112,112,112,
+Atorvastatin 10mg tablets,39695411000001103,1288,270,1288,905,1092,1065,1008,1120,1065,1120,839,973,1063,780,
+Atorvastatin 20mg chewable tablets sugar free,19722511000001105,,,,,,,,,,,56,,,56,
+Atorvastatin 20mg tablets,39733011000001106,6798,21,6798,5578,6289,6691,6056,6857,6727,6262,5268,6264,6271,5529,
+Atorvastatin 40mg tablets,39733111000001107,9469,542,9469,7842,8933,8930,7792,9420,9196,8836,7853,8244,8791,7464,
+Atorvastatin 80mg tablets,39733211000001101,9733,540,9733,8090,8474,9376,7988,9777,9507,8921,7558,8349,8964,7643,
+azathioprine 100mg tablets,42264811000001105,,,,,,28,28,28,28,28,,28,,,
+Azathioprine 25mg tablets,41759011000001103,165,303,165,112,221,168,140,140,112,168,140,140,140,140,
+Azathioprine 50mg tablets,41759311000001100,336,268,336,140,224,280,252,308,308,280,252,252,378,266,
+Azithromycin 250mg caps,41942011000001100,36,FSP1,36,44,48,60,48,60,60,88,64,88,76,76,
+Azithromycin 250mg tablets,11034311000001100,56,FSP1,56,28,28,28,28,28,28,28,28,28,56,28,
+Azithromycin 500mg tablets,39733511000001103,121,FSP1,121,107,75,120,84,96,96,84,72,93,96,84,
+Baclofen 10mg tablets,42032611000001100,2378,353,2378,1670,1428,2380,1652,2688,1808,1988,1778,1932,2324,1792,
+Baraclude 1mg tablets,10740411000001107,,,,,,,,,,28,28,28,28,28,
+Bempedoic acid 180mg tablets,38931511000001109,28,FSP1,28,28,28,28,28,28,28,28,28,28,84,28,
+Benadryl Allergy Relief 8mg caps,2937311000001104,84,FSP1,84,84,84,84,80,84,84,,163,63,84,84,
+Bendroflumethiazide 2.5mg tablets,42206611000001103,3538,219,3538,2619,3171,3295,3102,3769,3759,3338,3350,3199,3453,2968,
+Bendroflumethiazide 5mg tablets,42206711000001107,28,FSP1,28,28,28,56,28,28,28,28,,,,,
+Betahistine 16mg tablets,39733611000001104,1288,213,1288,1093,1162,1064,1309,1518,1316,1350,1283,1325,1204,1288,
+Betahistine 8mg tablets,39733711000001108,168,338,168,317,196,196,196,196,112,362,196,196,111,112,
+Betmiga 50mg modified-release tablets,21973111000001108,,FSP2,,28,28,28,28,28,84,28,56,84,84,56,
+Bezafibrate 200mg tablets,42206811000001104,28,FSP1,28,28,28,56,28,56,28,28,28,28,28,28,
+Bezafibrate 400mg modified-release tablets,349711000001104,28,FSP1,28,28,28,28,51,28,28,28,28,28,28,28,
+Bisacodyl 5mg gastro-resistant tablets,42351711000001102,686,230,686,683,696,880,868,1145,1224,902,824,812,784,616,
+Bisoprolol 1.25mg tablets,42371111000001100,2868,278,2868,2372,2477,2543,2100,2899,2596,2690,2377,2627,2770,2371,
+Bisoprolol 10mg tablets,42371211000001106,1625,146,1625,1263,1428,1479,1407,1568,1597,1521,1204,1370,1595,1288,
+Bisoprolol 2.5mg tablets,42371311000001103,6011,347,6011,5191,5571,5798,5574,6465,5967,5717,5019,5282,6018,4928,
+Bisoprolol 3.75mg tablets,42371411000001105,700,253,700,465,500,695,537,847,714,784,617,844,835,672,
+Bisoprolol 5mg tablets,42371511000001109,3431,218,3431,2483,3040,2999,2547,3246,3037,3219,2390,3164,3314,2792,
+Bisoprolol 7.5mg tablets,42371611000001108,928,168,928,820,959,1064,728,980,840,840,644,840,812,782,
+Brivaracetam 100mg tablets,31533711000001103,448,90,448,448,448,350,392,280,413,280,280,392,392,392,
+Brivaracetam 25mg tablets,31534011000001103,56,FSP1,56,56,56,,,,,,,,112,112,
+Brivaracetam 50mg tablets,31534111000001102,84,FSP1,84,140,140,168,140,224,140,140,196,196,195,140,
+Brivaracetam 75mg tablets,31534511000001106,,,,,,,,,,,,56,,,
+Briviact 50mg tablets,,112,FSP1,112,56,56,,,,,,,,,,
+Bumetanide 1mg tablets,42292511000001100,1260,150,1260,1263,1092,980,1036,1449,1148,1094,1204,1288,1536,1415,
+Buscopan 10mg tablets,738611000001104,195,FSP1,195,196,194,84,84,84,168,84,84,,,,
+Buspirone 10mg tablets,39734311000001106,728,130,728,677,532,644,644,811,784,812,643,644,814,728,
+Buspirone 5mg tablets,39734411000001104,846,138,846,603,444,585,582,756,924,672,420,840,832,750,
+Calcichew D3 chewable tablets,442811000001108,224,11,224,84,129,196,94,140,196,168,168,196,112,112,
+Calcichew D3 Forte chewable tablets,41983811000001109,56,1,56,90,56,56,56,224,112,168,112,112,229,205,
+Calcichew Forte chewable tablets,547411000001104,56,MDU,56,56,56,56,56,56,56,112,84,56,56,56,
+Calcium carbonate 1.25g chewable tablets sugar free,41982311000001105,70,MDU,70,66,56,56,56,56,56,56,56,56,112,,
+Calcium carbonate 2.5g chewable tablets sugar free,41982711000001109,,MDU,,28,28,28,28,56,28,28,28,56,,28,
+Canagliflozin 100mg tablets,24088611000001101,84,FSP1,84,56,56,56,56,112,56,56,56,56,56,28,
+Canagliflozin 300mg tablets,24104511000001103,336,38,336,229,308,364,364,280,300,252,273,280,275,308,
+Candesartan 16mg tablets,42371711000001104,648,276,648,423,533,478,475,559,336,425,422,505,504,392,
+Candesartan 2mg tablets,42371811000001107,168,FSP1,168,168,168,140,168,249,195,270,196,376,363,251,
+Candesartan 32mg tablets,42371911000001102,252,293,252,262,336,280,224,252,280,252,168,280,252,190,
+Candesartan 4mg tablets,42372011000001109,949,27,949,308,505,476,609,686,588,544,553,588,729,589,
+Candesartan 8mg tablets,42372111000001105,756,178,756,551,647,560,561,701,588,532,536,462,504,420,
+Carbamazepine 100mg tablets,42125811000001104,308,352,308,206,364,336,140,140,224,140,140,84,420,140,
+Carbamazepine 200mg modified-release tablets,37082411000001106,210,59,210,154,294,300,294,294,448,350,140,448,322,322,
+Carbamazepine 200mg tablets,42126211000001106,728,358,728,731,669,868,812,896,1344,728,560,897,784,700,
+Carbamazepine 400mg modified-release tablets,37082511000001105,168,50,168,56,112,112,168,112,112,168,168,224,168,112,
+Carbamazepine 400mg tablets,42126411000001105,306,FSP1,306,252,193,196,279,196,196,196,196,197,140,196,
+Carbimazole 20mg tablets,42080911000001104,140,FSP1,140,84,84,56,56,54,56,56,54,56,112,56,
+Carbimazole 5mg tablets,42081011000001107,155,FSP1,155,112,110,112,124,196,140,112,140,168,140,56,
+Carbocisteine 375mg caps,42292811000001102,5420,36,5420,4348,5116,5784,4976,6164,6216,5904,4383,5332,5964,4719,
+Carbocisteine 750mg caps,39417611000001109,83,FSP1,83,84,83,84,84,84,168,,168,84,84,84,
+Cardioplen XL 10mg tablets,7887511000001107,28,FSP1,28,84,84,28,111,111,224,140,84,56,,,
+Cardioplen XL 2.5mg tablets,11506711000001103,,,,,,,,,,,,28,,,
+Cardioplen XL 5mg tablets,7887011000001104,56,FSP1,56,56,83,56,84,56,112,56,82,56,28,28,
+Carvedilol 12.5mg tablets,42372511000001101,200,242,200,252,252,224,336,364,336,419,280,280,331,392,
+Carvedilol 25mg tablets,42372611000001102,336,246,336,224,336,280,280,336,224,280,274,266,280,224,
+Carvedilol 3.125mg tablets,42372711000001106,266,62,266,208,224,112,224,110,308,168,168,196,159,104,
+Carvedilol 6.25mg tablets,42372811000001103,308,41,308,290,436,251,280,308,308,352,224,336,448,224,
+Cefalexin 250mg tablets,39684111000001105,56,MDU,56,17,28,42,,28,-,14,14,14,56,14,
+Celecoxib 100mg caps,42100411000001101,249,510,249,140,196,252,196,224,112,168,56,56,168,56,
+Celecoxib 200mg caps,42100511000001102,197,513,197,196,140,252,168,280,252,308,196,196,336,196,
+Cenobamate 100mg tablets,40206211000001105,28,FSP1,28,84,28,84,56,56,42,,28,28,,,
+Cenobamate 200mg Tablets,40206611000001107,28,FSP1,28,28,28,56,56,56,84,84,56,56,56,56,
+Cenobamate 50mg tablets,40199011000001106,28,FSP1,28,27,28,28,28,28,70,28,,56,56,56,
+Cetirizine 10mg tablets,42186511000001101,2045,141,2045,1864,2028,2043,1805,2186,2233,2249,1985,1953,2142,1696,
+Chlordiazepoxide 10mg caps,,96,FSP1,96,84,168,,84,,,,,,,,
+Chlorphenamine 4mg tablets,39708211000001102,476,142,476,392,476,566,308,364,308,336,419,545,420,84,
+Chlorpromazine 100mg tablets,42268811000001102,168,301,168,168,168,,168,168,168,168,222,168,148,168,
+Chlorpromazine 25mg tablets,42269111000001102,493,214,493,392,308,560,420,420,588,420,420,420,532,403,
+Chlorpromazine 50mg tablets,42269211000001108,336,177,336,280,252,308,196,196,252,196,196,196,196,196,
+Cilostazol 100mg tablets,,176,FSP1,176,112,112,112,,56,,,,,,,
+Cinacalcet 30mg tablets,42081311000001105,,,,,,,,,,,,56,56,,
+Cinnarizine 15mg tablets,42034011000001101,718,165,718,672,672,588,588,1020,420,672,756,588,588,588,
+Ciprofloxacin 500mg tablets,39687811000001107,28,FSP1,28,28,28,28,28,28,56,28,28,28,28,89,
+Citalopram 10mg tablets,42269311000001100,788,240,788,655,654,672,700,784,784,560,504,553,632,420,
+Citalopram 20mg tablets,42269411000001107,2003,327,2003,1442,1628,1540,1488,1665,1783,1510,1335,1402,1607,1456,
+Citalopram 40mg tablets,42269511000001106,725,326,725,628,541,560,532,560,645,644,447,491,532,504,
+Clobazam 10mg tablets,42127011000001103,280,144,280,308,252,252,336,574,363,280,462,490,523,556,
+Clomipramine 10mg caps,42269711000001101,,,,,,,,,,,,,,56,
+Clomipramine 25mg caps,321786000,308,FSP1,308,28,,,,,,,,,,,
+Clomipramine 50mg caps,42269911000001104,305,FSP2,305,438,447,448,445,573,585,448,448,469,588,498,
+Clonazepam 1mg tablets,42127211000001108,56,FSP1,56,56,56,56,56,112,56,56,56,56,56,56,
+Clonazepam 2mg tablets,42127311000001100,42,FSP1,42,42,42,56,42,42,42,41,42,98,98,98,
+Clonazepam 500microgram tablets,42127411000001107,868,174,868,630,574,686,546,625,546,784,616,616,882,658,
+Clonidine 100microgram tablets,42100711000001107,112,FSP1,112,112,112,112,140,196,112,111,124,103,140,112,
+Clonidine 25microgram tablets,42100811000001104,1484,264,1484,1288,1484,1438,1092,1170,1708,1382,1360,921,1092,1064,
+Clopidogrel 75mg tablets,39689111000001106,9080,195,9080,7542,8093,8872,7613,8714,9190,8743,7612,8665,9440,8126,
+Co-amilofruse 5mg/40mg tablets,42293411000001108,,,,,,,,28,28,28,28,28,28,,
+Co-amilozide 2.5mg/25mg tablets,42207511000001100,28,FSP1,28,30,28,28,28,28,56,28,28,28,28,28,
+Co-beneldopa 12.5mg/50mg caps,42034211000001106,225,120,225,252,,252,504,252,252,252,438,252,252,252,
+Co-beneldopa 12.5mg/50mg dispersible tablets sugar free,,28,FSP1,28,60,28,55,28,28,28,56,,28,84,28,
+Co-beneldopa 25mg/100mg caps,42034311000001103,112,FSP1,112,93,196,391,212,111,112,112,112,112,112,112,
+Co-beneldopa 25mg/100mg modified-release caps,27911000001105,28,FSP2,28,59,28,84,90,28,28,28,48,28,28,28,
+Co-careldopa 12.5mg/50mg tablets,39734711000001105,1020,291,1020,1043,1372,1428,1652,1867,1848,1540,1539,1708,2072,1540,
+Co-careldopa 25mg/100mg modified-release tablets,39109011000001105,164,FSP1,164,84,168,167,140,196,140,189,84,140,252,112,
+Co-careldopa 25mg/100mg tablets,39734811000001102,1064,295,1064,582,784,756,672,868,868,868,504,1092,1120,560,
+Co-codamol 15mg/500mg tablets,3805611000001109,336,512,336,336,336,448,448,482,430,672,280,728,560,392,
+Co-codamol 30mg/500mg caplets,22785311000001107,,,,,448,224,,,,224,662,224,,,
+Co-codamol 30mg/500mg caps,42009511000001104,588,4,588,448,448,672,224,728,728,280,504,504,560,448,
+Co-codamol 30mg/500mg tablets,42009811000001101,7533,505,7533,7780,6456,7449,6738,7034,8590,6111,5532,7196,7413,6790,
+Co-codamol 8mg/500mg caplets,,,,,,,,,,,,,,,112,
+Co-codamol 8mg/500mg caps,42010011000001101,,,,,,,,,,112,112,,,224,
+Co-codamol 8mg/500mg tablets,42010211000001106,1820,85,1820,1706,1756,2828,2796,4148,4390,3363,3182,3270,2938,2716,
+Co-dydramol 10mg/500mg tablets,42010611000001108,784,514,784,616,952,784,1176,784,784,784,1008,1009,1428,1008,
+Co-dydramol 20mg/500mg tablets,42010711000001104,112,23,112,224,,,,,,,,,,,
+Co-dydramol 30mg/500mg tablets,42010811000001107,781,FSP1,781,1061,669,430,446,112,560,334,333,336,224,335,
+Co-tenidone 100mg/25mg tablets,,,,,,,,,,,,,,,28,
+Co-trimoxazole 80mg/400mg tablets,41947411000001107,167,FSP1,167,112,103,98,112,224,195,224,186,196,252,83,
+Cod liver oil 550mg caps,,28,FSP1,28,28,28,,,,,,,,,,
+Codeine 15mg tablets,42010311000001103,868,319,868,812,868,1115,952,1428,1204,1001,868,840,854,952,
+Codeine 30mg tablets,42010411000001105,1932,290,1932,1092,1045,1316,1792,2408,1652,1932,1540,1652,1981,1202,
+Colchicine 500microgram tablets,,56,FSP1,56,56,56,112,,,,,,,,,
+Colecalciferol 1000unit caps,17334411000001109,170,516,170,202,224,280,241,252,168,224,196,215,252,168,
+Colecalciferol 1000unit tablets,17334511000001108,3732,30,3732,2723,3575,3872,3163,3913,3375,3254,2743,2946,3535,2989,
+Colecalciferol 2000unit tablets,23637711000001109,,,,,,28,28,28,28,28,28,56,28,28,
+Colecalciferol 200unit / Calcium carbonate 750mg tablets,19372511000001108,1484,531,1484,606,873,768,656,1088,656,492,544,448,224,,
+Colecalciferol 3200unit caps,24495811000001101,,FSP1,,69,28,28,28,28,28,28,28,28,28,28,
+Colecalciferol 400unit / Calcium carbonate 1.25g chewable tablets,,56,1,56,56,56,2,56,,56,,,,,,
+Colecalciferol 400unit / Calcium carbonate 1.5g tablets,19525711000001105,1591,502,1591,1126,1008,1993,1336,1400,2016,1652,1447,1344,1624,1120,
+Colecalciferol 400unit caps,17527711000001105,224,MDU,224,140,196,140,168,252,224,224,252,252,280,224,
+Colecalciferol 400unit tablets,19372611000001107,28,FSP2,28,28,28,28,51,28,28,28,28,28,28,28,
+Colecalciferol 5000unit tablets,,,,,,,,28,53,,,,,,,
+Colecalciferol 800unit caps,19973811000001109,1740,227,1740,1659,1571,1705,1488,1936,1869,1457,1284,1584,1820,1235,
+Colecalciferol 800unit tablets,21244711000001109,112,310,112,56,56,56,56,112,56,84,84,84,112,140,
+"ColeKal-D3 1,000unit tablets",36446411000001106,28,FSP1,28,28,,,,56,28,28,28,28,28,28,
+Colesevelam 625mg tablets,42207911000001107,,,,,168,168,168,168,168,168,168,168,168,168,
+Conjugated oestrogens 1.25mg tablets,325557008,,FSP1,,28,28,28,56,28,28,28,28,28,28,28,
+Conjugated oestrogens 625microgram tablets,325556004,28,FSP2,28,28,28,28,28,28,56,28,28,28,28,28,
+Coracten SR 10mg caps,126411000001108,280,FSP1,280,123,168,222,168,168,224,223,278,322,336,280,
+Coracten SR 20mg caps,389611000001101,56,,56,,224,168,168,168,112,168,112,56,56,56,
+Coracten XL 30mg caps,162811000001100,84,FSP1,84,33,84,28,56,84,56,55,56,56,56,56,
+Creon 10000 gastro-resistant caps,499411000001107,,FSP1,,84,153,252,249,250,252,252,246,412,84,252,
+Creon 25000 gastro-resistant caps,654311000001107,528,FSP1,528,336,336,502,336,335,336,336,336,336,168,168,
+CyanocoB12 100microgram tablets,,,,,,,,,,,,,,,28,
+CyanocoB12 50microgram tablets,37477911000001102,84,FSP1,84,84,84,,,,,28,28,28,,,
+Cyanocobalamin 100microgram tablets,34199011000001109,168,136,168,168,168,224,252,392,252,364,222,308,392,224,
+Cyanocobalamin 1mg modified-release tablets,,28,FSP1,28,28,56,,28,28,,,,,,,
+cyanocobalamin 500mcg tablets,,56,,56,,55,28,,,,,,,,,
+Cyanocobalamin 50microgram tablets,41984111000001100,1232,269,1232,1428,1315,1394,1008,1120,1372,1204,1090,1262,1344,1064,
+Cyclizine 50mg tablets,42034511000001109,392,172,392,224,280,420,336,476,340,336,336,265,392,336,
+Dabigatran etexilate 110mg caps,13532811000001109,168,FSP1,168,112,112,56,112,112,112,112,56,56,112,56,
+Dantrolene 100mg caps,42034811000001107,84,FSP1,84,84,84,84,84,84,168,84,84,84,87,84,
+Dapagliflozin 10mg tablets,39689811000001104,5354,201,5354,4494,4701,4952,4506,5238,5370,5120,4155,4855,5005,4346,
+Dapagliflozin 5mg tablets,21609511000001105,420,289,420,286,308,280,280,336,252,252,196,196,196,112,
+Daridorexant 50mg Tablets,42235211000001104,,,,,,28,28,28,84,112,56,56,56,56,
+Depakote 250mg gastro-resistant tablets,3846411000001106,120,FSP1,120,112,56,56,56,56,112,56,56,56,56,56,
+Depakote 500mg gastro-resistant tablets,3847111000001103,168,FSP1,168,166,112,112,110,112,224,111,112,112,168,168,
+Desloratadine 5mg tablets,,84,FSP1,84,84,28,56,,56,,56,,56,28,28,
+Desmopressin 100microgram tablets,325917002,56,FSP1,56,28,28,23,28,28,28,27,28,28,56,28,
+Desmopressin 200microgram tablets,325918007,306,FSP1,306,112,224,168,168,162,224,192,112,168,252,168,
+Desogestrel 75microgram tablets,400419002,228,FSP1,228,167,111,195,167,112,147,112,112,140,168,140,
+Dexamethasone 500microgram tablets,,32,FSP1,32,28,28,,,,,,,,,,
+DHC Continus 60mg tablets,3037111000001103,112,170,112,56,51,56,56,56,56,56,56,56,112,,
+Diazepam 2mg tablets,42128111000001101,4585,233,4585,3439,4181,3654,3424,4188,4625,4135,3616,3481,4628,3778,
+Diazepam 5mg tablets,42128311000001104,2662,220,2662,2512,2744,2250,2268,2838,2841,2800,1900,2662,3360,2352,
+Diclofenac sodium 50mg gastro-resistant tablets,329587009,364,FSP1,364,319,265,196,280,446,308,112,196,280,196,196,
+Diclofenac sodium 75mg modified-release tablets,,,,,,,,28,,,,,,,,
+Dicycloverine 20mg tablets,,84,FSP1,84,84,84,84,84,84,84,166,,168,84,84,
+Digoxin 125microgram tablets,42208511000001101,814,359,814,767,700,676,812,1036,1104,1082,1073,1085,1155,836,
+Digoxin 250microgram tablets,42208611000001102,280,124,280,196,392,224,224,308,168,224,196,224,204,252,
+Digoxin 62.5microgram tablets,42208711000001106,312,164,312,280,364,385,364,449,392,532,308,420,476,392,
+Dihydrocodeine 120mg modified-release tablets,,168,114,168,56,56,,56,,,,,,56,112,
+Dihydrocodeine 30mg tablets,39708511000001104,7073,29,7073,5020,5262,4991,4994,5981,6156,5264,4764,4379,5721,4371,
+Dihydrocodeine 60mg modified-release tablets,39112411000001109,616,170,616,448,588,498,532,476,700,588,476,588,646,588,
+Dihydrocodeine 90mg modified-release tablets,39112511000001108,176,FSP2,176,56,219,279,328,403,420,420,364,364,415,420,
+Diltiazem 120mg modified-release tablets,,56,,56,,56,112,56,54,,,,,,,
+Diltiazem 180mg modified-release caps,319184008,28,FSP1,28,28,28,28,17,28,56,28,28,28,28,84,
+Diltiazem 200mg modified-release caps,,,,,,,,,,,,,,,28,
+Diltiazem 240mg modified-release caps,319186005,56,FSP1,56,28,,84,56,84,28,56,56,30,83,28,
+Diltiazem 300mg modified-release caps,2886111000001104,56,89,56,28,112,84,56,56,84,28,28,28,28,28,
+Diltiazem 60mg modified-release tablets,319205001,280,FSP1,280,195,278,457,277,252,250,332,166,252,336,336,
+Diltiazem 90mg modified-release caps,,56,FSP1,56,55,56,56,56,56,112,56,,111,56,56,
+Diltiazem 90mg modified-release tablets,,,,,,,,,,,,,56,,56,
+Distigmine bromide 5mg tablets,,,,,,,,,,,,,42,84,84,
+Disulfiram 200mg tablets,42270311000001102,56,FSP1,56,55,56,56,56,93,56,56,56,28,84,56,
+Docusate 100mg caps,773111000001101,2281,102,2281,1792,2097,1960,1876,2181,2408,2215,2212,2544,2128,2207,
+Domperidone 10mg tablets,39690811000001107,84,280,84,84,84,112,56,112,168,112,56,168,196,140,
+Donepezil 10mg tablets,42035511000001105,280,118,280,280,266,448,391,280,420,365,308,280,419,334,
+Donepezil 5mg tablets,42035611000001109,196,207,196,112,224,252,168,252,224,252,112,224,280,196,
+Dosulepin 25mg caps,321805008,56,FSP1,56,56,52,56,56,112,56,54,56,56,56,54,
+Dosulepin 75mg tablets,42270711000001103,81,FSP1,81,84,135,56,56,84,168,84,84,84,82,84,
+Doxazosin 1mg tablets,42209111000001103,372,153,372,308,364,140,252,252,280,224,280,252,154,112,
+Doxazosin 2mg tablets,42209211000001109,388,232,388,252,196,252,196,243,224,252,196,245,224,168,
+Doxazosin 4mg modified-release tablets,,,,,,,,,,,,,,,84,
+Doxazosin 4mg tablets,42209311000001101,1707,222,1707,1316,1456,1342,1169,1623,1636,1454,1204,1280,1310,1062,
+Doxazosin 8mg modified-release tablets,,,,,,,,,,,,,,,56,
+Doxazosin 8mg tablets,42209411000001108,,,,,56,24,112,112,168,168,140,154,224,168,
+Doxycycline 100mg caps,324059006,84,FSP1,84,99,112,55,112,84,140,84,84,168,193,224,
+Doxycycline 50mg caps,,,,,,,,28,28,28,,,,,,
+Dronedarone 400mg tablets,443311001,112,,112,,56,112,56,56,56,56,56,56,56,56,
+Duloxetine 120mg,39964711000001109,280,FSP1,280,176,168,336,140,222,140,195,140,226,250,168,
+Duloxetine 20mg gastro-resistant caps,8.01311E+15,84,FSP1,84,61,56,,,,28,56,56,56,56,28,
+Duloxetine 30mg gastro-resistant caps,42294111000001101,1308,119,1308,1006,777,980,1119,1036,1272,867,980,962,1133,980,
+Duloxetine 40mg gastro-resistant caps,8013211000001106,168,94,168,173,98,84,84,133,84,83,56,56,112,56,
+Duloxetine 60mg gastro-resistant caps,42294211000001107,2891,14,2891,2357,2318,2800,2472,2921,2632,2659,2177,2406,2759,2493,
+Duloxetine 90mg gastro-resistant caps,39964811000001101,196,92,196,168,168,196,140,196,259,252,224,196,168,196,
+Edoxaban 30mg tablets,29903311000001108,756,208,756,563,784,816,812,1007,952,980,644,851,896,868,
+Edoxaban 60mg tablets,29903411000001101,1076,158,1076,761,976,1061,1042,1341,1204,1164,878,1148,1317,1077,
+Efexor XL 150mg caps,,,,,,,,28,,,,,,,,
+Efexor XL 75mg caps,,,,,,,,28,,,,,,,,
+Empagliflozin 10mg tablets,25238811000001107,896,274,896,621,756,641,812,924,869,883,896,982,1062,952,
+Empagliflozin 12.5mg / Metformin 1g tablets,,,,,,,,56,56,56,112,,56,112,56,
+Empagliflozin 25mg tablets,25290611000001102,1404,104,1404,1251,1466,1481,1557,1850,1770,1455,1344,1458,1705,1400,
+Empagliflozin 5mg / Metformin 1g tablets,30318311000001106,56,FSP1,56,56,56,55,112,56,56,56,56,56,56,56,
+Enalapril 10mg tablets,42374011000001103,140,FSP1,140,110,112,28,28,28,19,28,28,28,56,28,
+Enalapril 2.5mg tablets,42374111000001102,28,183,28,28,10,84,252,84,224,224,126,224,280,207,
+Enalapril 20mg tablets,42374211000001108,280,302,280,196,308,308,245,364,299,392,280,273,364,360,
+Enalapril 5mg tablets,42374311000001100,112,182,112,112,297,140,112,112,112,112,112,56,84,112,
+Entacapone 200mg tablets,323202009,112,FSP1,112,112,196,196,196,280,336,224,223,112,28,84,
+Entecavir 1mg tablets,,28,FSP1,28,28,28,56,28,28,28,,,,,,
+Entresto 24mg/26mg tablets,,56,FSP1,56,56,,,,,,,,,112,,
+Entresto 49mg/51mg tablets,31136411000001107,56,,56,,,,,,,,56,112,,,
+Entresto 97mg/103mg tablets,31138011000001104,112,FSP1,112,112,56,168,112,112,168,112,56,56,56,56,
+Epilim 500 gastro-resistant tablets,448711000001102,223,FSP1,223,223,223,278,224,280,222,333,110,224,224,224,
+Epilim Chrono 200 tablets,489711000001100,,FSP1,,56,56,56,56,57,56,,56,56,56,56,
+Epilim Chrono 300 tablets,789911000001106,128,FSP1,128,112,112,,112,224,102,,112,112,112,112,
+Epilim Chrono 500 tablets,739111000001100,409,FSP1,409,588,586,698,587,644,587,140,416,420,644,580,
+Eplerenone 25mg tablets,42209511000001107,1414,113,1414,977,1461,1318,1304,1682,1537,1371,1175,1258,1442,1307,
+Eplerenone 50mg tablets,42209611000001106,252,155,252,224,364,224,336,334,364,310,252,245,252,252,
+Erythromycin 250mg gastro-resistant tablets,41948811000001108,344,225,344,198,168,279,56,56,56,112,112,112,224,112,
+Escitalopram 10mg tablets,42271211000001104,111,FSP1,111,84,84,84,84,84,140,82,84,84,112,84,
+Escitalopram 20mg tablets,42271311000001107,84,FSP2,84,56,56,56,56,28,28,28,28,28,28,28,
+Escitalopram 5mg tablets,,28,FSP1,28,28,27,,,56,28,,,,,,
+Eslicarbazepine 800mg tablets,16197411000001103,56,FSP1,56,126,,112,56,56,56,56,56,56,56,56,
+Esomeprazole 20mg gastro-resistant caps,17631311000001107,1512,79,1512,962,1288,1749,1140,1596,1418,1414,1135,1068,1326,1103,
+Esomeprazole 20mg gastro-resistant tablets,42353711000001101,84,48,84,56,56,254,219,224,227,252,140,168,252,196,
+Esomeprazole 40mg gastro-resistant caps,17631411000001100,1564,117,1564,1060,1308,1540,1077,1326,1274,1232,952,1057,1421,812,
+Esomeprazole 40mg gastro-resistant tablets,42353811000001109,224,84,224,196,112,252,308,364,364,252,280,392,335,280,
+Esomeprazole 40mg gastro-resistant tabletsEsomeprazole 40mg gastro-resistant tablets,,,,,,84,56,56,,56,112,56,,84,84,
+Estradiol 1mg tablets,325545004,,FSP2,,28,28,52,28,28,28,28,28,28,26,28,
+Estradiol 2mg tablets,325546003,28,FSP1,28,28,,,84,56,,28,28,28,28,,
+Ethosuximide 250mg caps,4.21287E+16,,,,,,,56,56,112,56,56,56,56,56,
+Etodolac 600mg modified-release tablets,39109711000001107,336,83,336,28,224,389,242,280,280,273,196,338,336,308,
+Etoricoxib 30mg tablets,13132911000001109,83,FSP1,83,66,83,83,83,84,112,82,83,84,140,28,
+Etoricoxib 60mg tablets,42103311000001102,112,FSP1,112,118,112,112,112,84,84,112,56,84,126,112,
+Etoricoxib 90mg tablets,407908008,167,FSP1,167,112,112,112,112,112,140,140,138,133,167,84,
+Exemestane 25mg tablets,42294511000001105,28,FSP1,28,56,28,84,56,56,84,56,28,84,56,28,
+Ezetimibe 10mg tablets,42209811000001105,1478,300,1478,1013,1269,1111,976,1094,1093,1060,784,834,1050,868,
+Famotidine 20mg tablets,42354011000001101,1960,44,1960,1983,1956,2126,1653,1736,1680,1515,1281,1318,1427,1318,
+Famotidine 40mg tablets,42354111000001100,84,43,84,140,140,140,196,336,532,428,392,497,476,392,
+Febuxostat 80mg tablets,441623005,168,FSP1,168,140,168,112,112,196,196,152,84,196,140,140,
+Felodipine 10mg modified-release tablets,39020511000001105,82,,82,,56,56,56,28,56,28,84,56,28,28,
+Felodipine 2.5mg modified-release tablets,39020311000001104,195,FSP1,195,56,168,167,140,168,195,138,166,112,84,28,
+Felodipine 5mg modified-release tablets,39020611000001109,112,FSP1,112,84,56,56,56,84,84,56,84,140,56,56,
+Fenofibrate micronised 160mg tablets,319994002,,,,,,,,,28,28,27,29,28,28,
+Fenofibrate micronised 200mg caps,319988005,84,FSP1,84,89,140,140,140,168,112,112,112,112,112,84,
+Ferrous fumarate 210mg tablets,41984711000001104,4034,333,4034,3451,3478,3630,3413,4475,5068,4508,3514,4346,4591,4041,
+Ferrous fumarate 322mg tablets,41985011000001102,336,245,336,326,224,329,308,476,420,388,388,408,468,298,
+Ferrous gluconate 300mg tablets,327419007,,,,,,,,,,,56,56,112,56,
+Ferrous sulfate 200mg tablets,41985211000001107,672,260,672,426,588,476,560,561,518,532,476,532,785,494,
+Fesoterodine 8mg modified-release tablets,442489000,84,FSP1,84,84,112,84,84,112,84,84,83,112,140,84,
+Fexofenadine 120mg tablets,42189111000001102,647,81,647,627,532,628,560,532,530,537,560,560,756,558,
+Fexofenadine 180mg tablets,42189211000001108,923,105,923,815,930,1059,958,1514,1202,1343,913,1332,1260,1092,
+Fexofenadine 30mg tablets,4722611000001106,56,FSP1,56,56,112,56,56,45,56,56,112,56,56,56,
+Finasteride 5mg tablets,42036011000001106,1972,180,1972,1413,1950,1883,1678,1950,2108,2160,1731,1792,2190,1596,
+Finerenone 10mg tablets,,,FSP2,,28,28,28,28,28,,,,,,,
+Finerenone 20mg tablets,40634511000001106,28,FSP1,28,28,28,28,28,28,57,28,28,28,28,28,
+Flecainide 50mg tablets,,112,FSP1,112,112,112,110,112,,,,,,,,
+Fluconazole 50mg caps,,,,,,,,,,,,,,,56,
+Fludrocortisone 100microgram tablets,42082611000001106,378,321,378,322,322,560,448,518,679,644,616,616,420,420,
+Fludrocortisone 50microgram tablets,,165,,165,,168,82,84,168,81,63,,,,56,
+Fluoxetine 10mg caps,373959000,,,,,,,,,,28,56,77,,,
+Fluoxetine 20mg caps,42271711000001106,5908,534,5908,4339,5409,5168,4523,5622,5045,5076,4270,4425,5046,4214,
+Fluoxetine 30mg caps,,28,,28,,28,28,,,,,,,,,
+Fluoxetine 40mg caps,42271911000001108,28,FSP1,28,28,28,28,28,28,28,56,28,56,56,56,
+Fluoxetine 60mg caps,321954002,228,FSP1,228,167,224,168,168,168,168,195,112,168,137,140,
+Flupentixol 1mg tablets,321936001,112,FSP1,112,112,111,112,112,168,224,222,224,196,224,223,
+Flupentixol 3mg tablets,321407005,,,,,110,112,224,224,56,168,168,168,168,168,
+Fluvastatin 20mg caps,39693011000001106,,,,,,,,,,,28,,,,
+Folic acid 400microgram tablets,41985411000001106,84,FSP1,84,83,84,56,56,84,84,84,56,84,135,56,
+Folic acid 5mg tablets,42294611000001109,8142,251,8142,6611,6797,7458,6472,8011,8109,7909,6746,7993,8979,6825,
+Forceval caps,3543011000001109,116,6,116,118,84,112,84,84,84,84,84,105,84,84,
+Fultium-D3 800unit caps,19920511000001104,218,FSP1,218,190,277,271,332,331,308,279,252,306,280,308,
+Furosemide 20mg tablets,42294711000001100,2701,337,2701,1898,2515,2381,2369,3039,2849,2661,2299,3029,2762,2546,
+Furosemide 40mg tablets,42294811000001108,8902,332,8902,7176,8556,8496,7725,9108,9522,9307,7068,8588,8834,7784,
+Gabapentin 100mg caps,42129511000001104,2546,65,2546,2963,2463,2850,2468,3668,3136,3757,3136,3054,4116,3444,
+Gabapentin 300mg caps,42129711000001109,17614,503,17614,14057,14224,15944,13450,16756,16062,13517,13000,14262,16265,13384,
+Gabapentin 400mg caps,42129811000001101,1512,63,1512,1563,1148,1624,1204,1288,1542,2061,1447,1289,1456,1456,
+Gabapentin 600mg tablets,42129911000001106,1030,70,1030,644,840,1218,1127,1124,1568,1474,1148,1400,1540,1316,
+Galantamine 24mg modified-release caps,,,,,,,,28,,,,,,,,
+Generic Creon 10000 gastro-resistant caps,3437011000001107,672,FSP1,672,336,332,336,336,336,668,309,672,336,416,672,
+Generic Creon 25000 gastro-resistant caps,3437111000001108,285,FSP1,285,335,281,588,252,588,168,252,251,252,252,336,
+Generic Forceval caps,3543011000001109,280,6,280,199,251,140,196,168,168,172,168,196,280,140,
+Gepretix 100mg caps,,,FSP1,,56,56,56,56,112,56,,,,,,
+Gliclazide 30mg modified-release tablets,38896211000001104,280,,280,,196,196,280,224,196,140,196,252,422,112,
+Gliclazide 40mg tablets,16702011000001102,1292,283,1292,846,980,1257,1162,1579,1468,1375,1372,1477,1709,1460,
+Gliclazide 60mg modified-release tablets,,84,FSP1,84,56,56,56,56,112,,56,,56,28,28,
+Gliclazide 80mg tablets,42082911000001100,6273,149,6273,4638,5056,6182,5114,6170,6464,6020,5376,5562,6615,5495,
+Glucophage SR 1000mg tablets,15367811000001105,56,MDU,56,56,56,42,9,56,56,56,56,56,28,56,
+Glucophage SR 500mg tablets,8.99E+15,112,,112,,,,112,112,,112,112,112,112,112,
+Glydex 160mg tablets,36914911000001102,,,,,56,168,168,336,280,222,224,224,280,224,
+Half Securon SR 120mg tablets,,56,FSP1,56,56,28,,28,28,56,28,,56,28,28,
+Half Sinemet CR 25mg/100mg tablets,37402411000001104,,,,,,,28,,28,56,56,84,56,56,
+Haloperidol 1.5mg tablets,42272611000001108,221,FSP1,221,280,280,280,224,336,224,224,112,222,334,,
+Haloperidol 500microgram tablets,,111,FSP2,111,112,112,108,106,56,56,56,,56,112,,
+Haloperidol 5mg tablets,42273211000001100,42,FSP2,42,70,70,69,42,42,42,42,42,42,83,42,
+Hiprex 1g tablets,3.69E+15,112,MDU,112,112,112,112,165,223,112,168,167,168,56,56,
+Hydralazine 25mg tablets,42211411000001105,,,,,,,168,,79,81,84,84,84,,
+Hydralazine 50mg tablets,318650003,,,,,56,55,56,56,56,112,56,56,56,56,
+Hydrocortisone 10mg tablets,42083911000001107,308,FSP1,308,282,210,350,154,336,287,280,168,154,182,224,
+Hydrocortisone 20mg tablets,3.25E+08,84,FSP2,84,56,56,84,28,84,84,56,56,56,56,56,
+Hydrocortisone 5mg Tablets,3.99E+16,56,FSP1,56,56,109,,111,28,28,28,28,28,56,84,
+Hydroxychloroquine 200mg tablets,42295211000001108,858,330,858,797,690,950,746,851,942,967,854,830,982,846,
+Hydroxyzine 10mg tablets,4.22E+16,84,FSP1,84,56,83,168,140,252,55,223,84,112,139,140,
+Hydroxyzine 25mg tablets,42191411000001107,112,FSP1,112,118,224,196,224,252,252,250,250,140,420,280,
+Hyoscine butylbromide 10mg tablets,42037011000001109,3570,348,3570,2998,3304,3102,3304,4432,3190,3444,3520,4335,4004,3556,
+Hyoscine hydrobromide 300microgram tablets,322081002,392,FSP1,392,392,476,413,392,325,500,439,363,350,504,448,
+Ibandronic acid 50mg tablets,,,,,,,,,28,,,,,,,
+Ibuprofen 200mg tablets,329652003,168,FSP1,168,198,168,168,166,168,168,168,168,168,168,168,
+Ibuprofen 400mg tablets,42104911000001104,466,204,466,280,448,280,281,448,476,448,756,476,308,252,
+Ibuprofen 600mg tablets,329654002,112,FSP1,112,35,56,56,56,56,56,84,56,112,84,140,
+Imipramine 10mg tablets,42295311000001100,,,,,112,112,112,224,112,168,168,168,224,168,
+Imipramine 25mg tablets,42295411000001107,448,229,448,448,448,619,448,672,616,504,504,504,504,278,
+Indapamide 1.5mg modified-release tablets,3.90E+16,140,,140,,112,112,112,140,112,140,112,105,112,84,
+Indapamide 2.5mg tablets,39696211000001108,392,277,392,293,392,308,304,280,310,252,252,224,252,224,
+Indometacin 50mg caps,,112,FSP1,112,56,56,,,,,,,,,56,
+InVita D3 400unit caps,34261411000001102,28,FSP1,28,28,28,28,28,56,28,28,56,56,56,56,
+"InVita D3 5,600unit caps",,4,FSP1,4,4,4,4,4,4,12,,,,,,
+InVita D3 800unit caps,34022411000001108,28,FSP1,28,55,56,111,54,56,56,56,56,28,28,28,
+Ipinnia XL 4mg tablets,,,,,,28,,,,,,,,,,
+Ipinnia XL 6mg tablets,,28,FSP3,28,60,28,56,28,28,28,56,,28,84,28,
+Irbesartan 150mg tablets,42375311000001101,196,257,196,140,168,196,168,196,252,167,224,168,112,56,
+Irbesartan 300mg tablets,42375511000001107,112,258,112,112,112,92,112,112,168,140,168,189,140,140,
+Irbesartan 75mg tablets,42375611000001106,84,256,84,112,112,112,112,224,224,168,168,168,168,140,
+Isosorbide dinitrate 20mg tablets,319365000,,,,,168,168,168,166,164,334,168,167,168,168,
+Isosorbide mononitrate 10mg tablets,42212411000001100,2594,31,2594,2198,2240,2801,2264,2802,2828,2572,1960,2429,2951,2324,
+Isosorbide mononitrate 20mg tablets,42212511000001101,2496,355,2496,1931,2044,2485,2016,2363,2504,2555,1732,2499,2781,2572,
+Isosorbide mononitrate 25mg modified-release caps,39024211000001104,504,47,504,229,516,448,420,616,438,499,448,501,448,364,
+Isosorbide mononitrate 25mg modified-release tablets,38898311000001106,83,,83,,65,56,55,84,84,56,56,56,56,28,
+Isosorbide mononitrate 40mg modified-release caps,39022111000001102,112,,112,,56,140,56,140,83,112,56,84,112,84,
+Isosorbide mononitrate 40mg modified-release tablets,39022011000001103,252,FSP1,252,194,264,196,84,84,168,140,138,140,56,112,
+Isosorbide mononitrate 40mg tablets,42212611000001102,596,125,596,538,560,504,560,558,504,560,448,671,448,166,
+Isosorbide mononitrate 50mg modified-release caps,39511000001108,196,FSP1,196,28,168,196,196,224,196,191,194,224,196,224,
+Isosorbide mononitrate 50mg modified-release tablets,38898211000001103,,,,,,,56,,28,28,56,56,56,28,
+Isosorbide mononitrate 60mg modified-release caps,39024111000001105,250,FSP1,250,84,224,250,250,307,306,224,364,308,392,280,
+Isosorbide mononitrate 60mg modified-release tablets,39024311000001107,280,18,280,28,244,284,224,250,196,336,196,224,196,252,
+Ivabradine 2.5mg tablets,35308111000001104,334,FSP1,334,278,334,335,221,224,224,235,112,112,168,112,
+Ivabradine 5mg tablets,9831411000001101,252,351,252,238,238,280,308,402,322,382,406,406,378,350,
+Ivabradine 7.5mg tablets,9831511000001102,504,265,504,402,336,376,392,448,448,392,448,392,505,336,
+Janumet 50mg/1000mg tablets,37440011000001101,56,FSP1,56,56,112,42,56,56,56,56,56,,56,56,
+Keppra 1g tablets,3.64E+15,62,FSP3,62,56,56,,56,110,56,,56,56,56,56,
+Keppra 500mg tablets,839211000001109,120,MDU,120,112,112,112,112,168,112,56,112,112,112,112,
+Lacidipine 2mg tablets,319300008,,,,,28,28,,,28,56,28,28,56,,
+Lacosamide 100mg tablets,42130111000001100,168,317,168,224,224,280,224,224,392,336,336,224,336,224,
+Lacosamide 150mg tablets,441947000,56,FSP1,56,56,56,56,56,56,84,84,140,168,196,140,
+Lacosamide 200mg tablets,441836008,224,FSP1,224,224,223,224,168,336,308,307,252,224,280,364,
+Lacosamide 50mg tablets,442041004,111,FSP3,111,196,391,252,420,280,252,224,280,280,448,308,
+Lamictal 100mg tablets,2928811000001105,56,FSP2,56,56,56,56,168,112,112,168,56,112,168,56,
+Lamictal 200mg tablets,3145211000001105,,,,,56,56,56,112,56,56,56,56,56,56,
+Lamictal 25mg tablets,2925811000001101,,,,,,,112,110,165,112,112,112,168,56,
+Lamictal 50mg tablets,2927711000001103,,,,,,,112,56,56,56,56,56,112,,
+Lamivudine 100mg tablets,324829002,,,,,,,,,28,56,28,28,28,28,
+Lamotrigine 100mg tablets,42130611000001108,1938,115,1938,1718,1927,1889,1792,1881,1710,1652,1680,1736,1664,1811,
+Lamotrigine 200mg tablets,42130711000001104,644,193,644,771,308,871,616,588,896,588,644,756,951,672,
+Lamotrigine 25mg tablets,42130911000001102,934,360,934,1092,811,1063,896,784,1015,700,812,812,908,746,
+Lamotrigine 50mg tablets,42131011000001105,1376,190,1376,1209,979,1372,1009,951,1451,1070,1148,1218,1048,1049,
+Lansoprazole 15mg gastro-resistant caps,42354511000001109,4431,64,4431,3719,3937,4113,3909,4805,4601,4285,3895,4261,4891,3768,
+Lansoprazole 30mg gastro-resistant caps,42354611000001108,11178,506,11178,9845,9503,11420,10098,11157,11770,11197,9644,10724,12138,10154,
+Lercanidipine 10mg tablets,42213011000001100,448,357,448,515,476,448,448,532,552,476,280,392,560,392,
+Lercanidipine 20mg tablets,10225911000001102,342,147,342,224,420,308,336,443,420,364,364,444,420,421,
+Letrozole 2.5mg tablets,41878511000001100,476,312,476,286,420,420,392,396,344,489,398,448,497,336,
+Levetiracetam 1g tablets,42131111000001106,896,109,896,851,1008,1327,1064,1120,945,1232,1120,1120,1232,1076,
+Levetiracetam 250mg tablets,42131211000001100,337,51,337,728,616,784,644,728,812,700,703,700,909,833,
+Levetiracetam 500mg tablets,42131311000001108,1484,69,1484,1939,1960,2100,1819,2184,1897,1792,1680,1568,2055,1658,
+Levetiracetam 750mg tablets,42131411000001101,392,2,392,350,322,559,336,415,392,336,280,280,224,323,
+Levocetirizine 5mg tablets,,28,FSP2,28,28,28,28,28,28,56,28,,56,28,28,
+Levodopa 100mg / Carbidopa 25mg / Entacapone 200mg tablets,5322311000001108,,,,,,,112,,112,112,112,112,112,,
+Levothyroxine sodium 100microgram tablets,39697911000001101,4516,356,4516,3836,3957,4492,3928,5130,4742,4568,3849,4234,4781,4405,
+Levothyroxine sodium 25microgram tablets,39698311000001101,2750,221,2750,2129,2707,2572,2469,3078,2949,2800,2427,2625,2828,2315,
+Levothyroxine sodium 50microgram tablets,39698611000001106,3370,350,3370,2776,2870,3117,2852,3706,3415,3180,2699,2898,3514,2674,
+Levothyroxine sodium 75microgram tablets,39698911000001100,56,354,56,91,28,84,84,56,56,56,56,56,56,56,
+Linaclotide 290microgram caps,21994511000001107,56,FSP2,56,28,28,28,28,28,28,28,28,28,28,28,
+Linagliptin 5mg tablets,19525211000001103,200,108,200,174,168,168,202,300,258,336,336,308,504,224,
+Lisinopril 10mg tablets,42376111000001109,336,28,336,224,280,280,252,297,436,311,252,280,308,364,
+Lisinopril 2.5mg tablets,318857003,280,FSP1,280,230,252,336,224,252,259,222,223,196,224,84,
+Lisinopril 20mg tablets,42376411000001104,648,237,648,588,644,672,613,847,660,675,644,616,700,682,
+Lisinopril 5mg tablets,42376511000001100,252,169,252,196,224,196,140,224,224,140,140,112,252,140,
+Liskonum 450mg modified-release tablets,,55,FSP1,55,33,28,28,28,,,28,,,28,28,
+Lithium carbonate 200mg modified-release tablets,565011000001106,84,189,84,84,56,140,84,56,56,56,56,56,28,56,
+Lithium carbonate 400mg modified-release tablets,3832311000001102,56,188,56,56,56,56,56,56,56,56,56,56,84,56,
+Livial 2.5mg tablets,13923711000001103,,,,,,,,,,,28,,,,
+Lofepramine 70mg tablets,39699211000001104,392,148,392,435,364,542,451,420,812,644,476,308,672,532,
+Loperamide 2mg caps,42354711000001104,700,10,700,705,812,907,688,1370,1092,1092,613,504,1176,840,
+Loprazolam 1mg tablets,39699311000001107,28,FSP1,28,28,28,28,28,28,28,28,28,49,28,28,
+Loratadine 10mg tablets,42192711000001108,843,128,843,663,700,728,672,792,910,893,756,779,815,840,
+Lorazepam 1mg tablets,42131511000001102,132,FSP1,132,224,54,115,56,56,112,84,56,28,140,56,
+Lorazepam 500microgram tablets,42131711000001107,84,FSP1,84,84,168,167,252,168,167,236,167,168,168,168,
+Losartan 100mg tablets,42376711000001105,860,346,860,812,638,811,605,896,903,1042,700,840,1064,810,
+Losartan 12.5mg tablets,15148111000001100,84,184,84,112,109,112,112,168,140,168,140,112,168,140,
+Losartan 25mg tablets,42376811000001102,904,123,904,705,644,931,612,896,840,812,588,700,637,560,
+Losartan 50mg tablets,42377011000001106,1260,341,1260,1032,1008,1332,1088,1185,1456,1275,1178,1112,1372,1164,
+Lurasidone 37mg tablets,,28,,28,,,28,,,,,,,,,
+Lurasidone 74mg tablets,2.67E+16,,,,,112,84,32,56,,56,56,56,56,112,
+Lustral 100mg tablets,687611000001102,56,FSP1,56,56,56,56,56,56,56,112,56,56,112,56,
+Lymecycline 408mg caps,324076005,196,FSP1,196,140,194,250,84,194,194,140,168,140,140,140,
+Madopar 50mg/12.5mg dispersible tablets,192211000001104,,FSP1,,56,112,,56,56,74,56,56,56,56,56,
+Magnesium citrate 150mg tablets,17295911000001104,112,FSP1,112,56,,112,56,54,56,56,56,56,56,66,
+Magnesium glycerophosphate,,,,,,28,28,,,28,54,28,28,56,,
+Magnesium oxide 160mg caps,,,,,,,,,,,,,84,84,84,
+Maxitram SR 100mg caps,1.50E+16,28,FSP2,28,28,28,28,28,27,56,28,28,,,,
+Maxitram SR 150mg caps,14977011000001105,28,FSP3,28,28,84,28,28,28,56,28,28,,,,
+Mebeverine 135mg tablets,42355011000001102,3165,329,3165,2842,3192,3388,2940,3612,3584,3248,2576,3080,3364,2760,
+Mebeverine 200mg modified-release caps,39107911000001102,56,,56,,56,56,112,168,280,224,168,280,224,224,
+Med. name,,,,,,,,,,,,,,,,
+Melatonin 2mg caps,11490311000001108,28,FSP1,28,28,28,28,28,28,28,28,28,28,28,56,
+Melatonin 2mg modified-release tablets,8025411000001104,1576,279,1576,1367,1036,1715,1288,1232,1539,1176,1316,1340,1866,1624,
+Melatonin 2mg tablets,15914311000001102,224,FSP1,224,138,83,84,84,56,112,140,56,56,56,28,
+Melatonin 3mg tablets,7877711000001106,334,FSP1,334,196,256,336,363,476,364,306,194,294,336,364,
+Meloxicam 15mg tablets,42106611000001101,241,FSP2,241,140,168,167,168,167,196,112,111,167,140,138,
+Meloxicam 7.5mg tablets,329927003,,,,,56,56,73,84,112,140,112,112,140,79,
+Memantine 10mg tablets,42037411000001100,112,111,112,56,84,112,112,112,84,112,56,84,84,84,
+Memantine 20mg tablets,13939111000001104,231,533,231,199,252,252,224,252,308,282,168,308,364,224,
+Meptazinol 200mg tablets,333936002,56,FSP1,56,56,56,56,56,112,56,56,56,56,56,,
+Mesalazine 1.2g gastro-resistant modified-release tablets,,,FSP1,,112,112,112,,,,,,,,,
+Mesalazine 400mg gastro-resistant tablets,317417008,168,FSP1,168,168,168,168,168,334,168,168,168,168,420,168,
+Mesalazine 500mg gastro-resistant tablets,,,,,,,,,,,,,,83,84,
+Mesalazine 800mg gastro-resistant tablets,13277611000001101,168,FSP1,168,168,162,84,84,84,81,84,84,84,336,84,
+Metformin 1g / Sitagliptin 50mg tablets,17071811000001108,55,FSP1,55,56,56,56,112,56,56,56,56,56,56,56,
+Metformin 1g modified-release tablets,38893711000001104,2435,58,2435,1074,2072,2464,1932,2294,2488,2334,1735,1820,2175,1708,
+Metformin 1g tablets,39461411000001102,,,,,,,112,,,,56,56,56,56,
+Metformin 500mg modified-release tablets,39113511000001101,5184,17,5184,2671,4546,4940,4191,5310,4580,4792,3332,3689,4300,3444,
+Metformin 500mg tablets,42084911000001109,25856,501,25856,21365,24367,24046,22713,27255,26310,24418,22942,24443,27409,23651,
+Metformin 750mg modified-release tablets,,,,,,,,84,84,,,,,,,
+Metformin 850mg tablets,42085111000001105,336,54,336,112,223,336,280,364,280,420,353,280,504,280,
+Methenamine hippurate 1g tablets,41951711000001108,698,88,698,454,682,672,560,504,616,616,560,441,560,560,
+Methocarbamol 750mg tablets,330129003,252,FSP1,252,168,334,252,252,252,410,250,252,252,241,252,
+Metoclopramide 10mg tablets,42037611000001102,264,197,264,234,308,336,365,364,364,280,280,196,224,392,
+Mezavant XL 1200mg tablets,12773911000001103,334,FSP1,334,224,110,224,334,224,224,330,110,224,112,112,
+Midodrine 5mg tablets,375426008,83,,83,,,,,,,,168,,,168,
+Mirabegron 25mg modified-release tablets,38893411000001105,308,315,308,230,364,336,336,448,476,308,308,329,252,280,
+Mirabegron 50mg modified-release tablets,38893511000001109,1085,336,1085,602,915,1148,1092,1036,1203,1084,818,897,1031,778,
+Mirtazapine 15mg tablets,42274511000001104,1876,234,1876,1440,1680,1808,1540,1738,2040,1816,1631,1656,1945,1874,
+Mirtazapine 30mg tablets,42274711000001109,2777,134,2777,2010,2409,2641,2268,2978,2872,2520,2435,2292,2777,2424,
+Mirtazapine 45mg tablets,42274811000001101,3236,61,3236,2898,2806,2819,2576,2787,2587,2807,2332,2710,2996,2744,
+Modafinil 100mg tablets,42014611000001101,278,FSP1,278,236,168,336,56,430,224,224,224,224,280,224,
+Modafinil 200mg tablets,407861004,56,FSP1,56,56,,,,,,,,,,,
+Monomax SR 40 caps,,,,,,,28,28,,,,,,,,
+Montelukast 10mg tablets,42296311000001105,1491,325,1491,1270,1405,1336,1220,1540,1467,1453,1146,1316,1314,1188,
+Montelukast 5mg chewable tablets sugar free,320885001,,,,,,,,,,,56,,,56,
+Moxonidine 200microgram tablets,318707000,137,FSP1,137,152,140,121,196,224,140,136,166,168,168,140,
+Mycophenolate mofetil 250mg caps,41766011000001104,224,FSP1,224,241,168,280,168,168,168,168,249,168,168,168,
+Mycophenolate mofetil 500mg tablets,41766211000001109,394,53,394,300,336,336,280,280,336,224,336,280,280,448,
+Nabumetone 500mg tablets,,56,FSP1,56,56,56,56,56,56,56,112,,112,56,56,
+Naftidrofuryl 100mg caps,41986811000001100,1176,46,1176,588,1008,1439,1168,1344,1222,1176,840,1344,1680,1502,
+Naltrexone 50mg tablets,41986911000001105,,,,,,,,,,,28,28,28,28,
+Naproxen 250mg tablets,42107511000001103,588,328,588,638,727,952,673,868,687,744,615,716,756,476,
+Naproxen 500mg tablets,42107811000001100,1596,37,1596,1552,1372,1484,1484,1750,2083,1680,1711,1867,1938,1829,
+Nebivolol 2.5mg tablets,3.97E+16,28,FSP1,28,28,28,56,27,27,28,28,28,28,28,28,
+Nebivolol 5mg tablets,39701211000001106,111,FSP1,111,84,84,84,112,140,112,112,121,112,168,112,
+Nefopam 30mg tablets,42296811000001101,336,292,336,336,504,420,256,588,420,336,420,504,588,504,
+Nicorandil 10mg tablets,42214811000001109,1806,306,1806,1618,1736,1901,1600,2294,2266,2072,1904,2271,2712,1848,
+Nicorandil 20mg tablets,42214911000001104,1424,342,1424,964,1344,1219,1148,1874,1576,1318,1372,1288,1540,1384,
+Nifedipine 10mg modified-release caps,319272002,56,FSP2,56,56,56,56,55,56,111,56,56,56,56,56,
+Nifedipine 10mg modified-release tablets,,,,,,,,,,56,,,,,,
+Nifedipine 20mg modified-release caps,39022511000001106,56,,56,,56,103,56,56,55,56,56,56,56,56,
+Nifedipine 30mg modified-release tablets,319275000,28,,28,,28,56,28,28,28,28,28,28,28,28,
+Nifedipine 60mg modified-release caps,38896511000001101,28,,28,,,28,28,56,28,28,28,28,28,28,
+Nifedipine 60mg modified-release tablets,319276004,28,,28,,28,56,28,28,28,28,28,28,56,56,
+Nifedipress modified-release 10 tablets,904011000001104,56,FSP1,56,56,56,55,56,56,56,56,56,56,56,56,
+Nifedipress modified-release 20 tablets,7855311000001102,56,FSP3,56,112,112,168,168,168,168,112,84,84,84,84,
+Nitrazepam 5mg tablets,42132411000001106,392,25,392,168,280,336,168,280,280,280,280,252,420,280,
+Nitrofurantoin 100mg modified-release caps,,,,,,,,,,,,,,,28,
+Nitrofurantoin 50mg caps,324570005,27,FSP1,27,28,,,28,56,56,83,56,77,56,28,
+Nitrofurantoin 50mg tablets,41953211000001102,56,FSP3,56,28,28,56,28,28,28,28,28,28,56,28,
+Nortriptyline 10mg caps,38285811000001101,52,FSP2,52,64,56,56,56,84,84,84,28,84,84,84,
+Nortriptyline 10mg tablets,39701411000001105,700,212,700,678,728,784,644,622,532,1036,756,756,1008,812,
+Nortriptyline 25mg caps,,,,,,,,,56,,56,,,,,
+Nortriptyline 25mg tablets,39701511000001109,840,318,840,476,640,728,560,588,644,476,588,756,476,491,
+Nyzamac SR 40 caps,423111000001109,28,FSP1,28,34,28,,,,,28,28,28,56,28,
+Octasa 400mg modified-release gastro-resistant tablets,21426611000001105,222,,222,,220,112,112,112,102,112,112,110,112,112,
+Octasa 800mg modified-release gastro-resistant tablets,18482611000001107,252,FSP1,252,84,334,408,418,,418,420,420,420,252,168,
+Octasa 800mg modified-releasegastro-resistant tablets,,,,,,,,,588,,,,,,,
+Olanzapine 10mg tablets,42275511000001103,593,20,593,692,670,641,672,1034,1008,867,756,868,924,875,
+Olanzapine 15mg tablets,42275611000001104,450,247,450,283,308,392,280,336,420,280,267,280,364,308,
+Olanzapine 2.5mg tablets,42275711000001108,336,137,336,336,362,308,280,336,280,392,196,392,448,392,
+Olanzapine 20mg tablets,42275911000001105,359,187,359,196,329,196,252,336,249,224,196,224,280,252,
+Olanzapine 5mg tablets,42276111000001101,732,297,732,392,588,476,448,588,560,532,420,532,728,476,
+Olanzapine 7.5mg tablets,42276211000001107,308,271,308,313,308,336,336,448,280,308,196,224,336,252,
+Omeprazole 10mg gastro-resistant caps,42356211000001101,843,13,843,564,784,616,644,764,784,670,574,644,728,525,
+Omeprazole 20mg gastro-resistant caps,42356411000001102,24803,511,24803,20437,21809,22338,20975,26015,25307,23566,20909,22338,24455,21673,
+Omeprazole 20mg gastro-resistant tablets,42356511000001103,84,FSP1,84,81,56,56,56,56,112,112,56,112,56,56,
+Omeprazole 40mg gastro-resistant caps,42356611000001104,274,107,274,364,223,484,392,364,336,392,336,336,336,308,
+Opicapone 50mg caps,33495211000001103,56,FSP2,56,27,56,,28,28,36,28,28,28,56,28,
+Oxcarbazepine 300mg tablets,42132911000001103,168,211,168,168,224,205,224,224,245,224,224,230,224,269,
+Oxcarbazepine 600mg tablets,42133011000001106,168,223,168,168,336,318,396,336,357,279,280,280,280,280,
+Oxybutynin 2.5mg tablets,42038911000001109,874,126,874,924,756,588,504,707,588,582,672,612,644,476,
+Oxybutynin 5mg tablets,42039111000001104,689,127,689,463,784,582,616,756,756,593,613,672,506,616,
+Oxytetracycline 250mg tablets,41953611000001100,252,FSP1,252,196,140,252,112,84,84,84,84,84,140,84,
+Paliperidone 3mg modified-release tablets,,,FSP2,,56,56,56,,,,,,,,,
+Pantoprazole 20mg gastro-resistant tablets,42357011000001109,112,FSP1,112,56,84,136,84,140,112,109,140,112,168,112,
+Pantoprazole 40mg gastro-resistant tablets,42357111000001105,224,145,224,122,168,224,196,140,196,224,224,224,224,218,
+Paracetamol 500mg / Dihydrocodeine 20mg tablets,680111000001109,224,23,224,224,216,224,224,224,355,224,224,224,,,
+Paracetamol 500mg / Dihydrocodeine 30mg tablets,419911000001100,336,116,336,224,224,448,448,560,336,784,336,784,896,560,
+Paracetamol 500mg caplets,668711000001105,,,,,,,,,,224,223,448,224,224,
+Paracetamol 500mg caps,42109411000001106,1400,33,1400,1678,1400,1400,1370,2128,1752,1735,1514,1290,1517,1736,
+Paracetamol 500mg tablets,42109611000001109,36539,521,36539,30852,30436,36823,29268,39052,37376,36612,30496,32364,35495,31444,
+Paroxetine 10mg tablets,421041006,56,FSP1,56,56,64,56,56,56,56,28,28,28,28,28,
+Paroxetine 20mg tablets,42276511000001105,672,176,672,582,728,756,674,970,796,784,662,700,840,672,
+Paroxetine 30mg tablets,42276611000001109,267,194,267,196,193,252,168,224,280,168,278,225,168,196,
+Paroxetine 40mg tablets,,28,FSP1,28,28,28,28,28,28,28,56,,56,28,28,
+Pentasa 1g modified-release tablets,,,,,,,,,,56,,,,,,
+Pentoxifylline 400mg modified-release tablets,,56,FSP1,56,56,56,,,,,,,,,,
+Peppermint oil 0.2ml gastro-resistant caps,14610311000001100,840,35,840,672,644,725,756,952,1176,700,784,1157,1204,952,
+Pericyazine 2.5mg tablets,321473008,,,,,,,,,112,110,112,112,112,112,
+Perindopril arginine 5mg tablets,13454411000001108,56,,56,,28,55,28,28,28,28,28,28,28,28,
+Perindopril erbumine 2mg tablets,42379211000001107,392,154,392,224,336,307,283,348,329,336,253,279,412,252,
+Perindopril erbumine 4mg tablets,42379311000001104,628,205,628,571,504,532,535,705,700,700,646,769,616,672,
+Perindopril erbumine 8mg tablets,42379411000001106,364,299,364,286,342,422,308,392,364,336,364,336,476,364,
+Phenobarbital 15mg tablets,322915000,28,FSP1,28,28,28,35,28,,28,28,28,28,28,56,
+Phenobarbital 30mg tablets,322916004,112,FSP2,112,112,112,119,141,84,196,112,112,112,28,56,
+Phenobarbital 60mg tablets,322917008,111,FSP2,111,112,112,35,28,,28,28,28,28,28,56,
+Phenoxymethylpenicillin 250mg tablets,41953811000001101,541,241,541,524,532,560,588,868,640,557,448,476,500,476,
+Phenytoin sodium 100mg caps,39025611000001101,336,100,336,252,252,168,327,363,448,364,308,420,448,364,
+Phenytoin sodium 25mg caps,42134411000001104,56,FSP1,56,56,56,56,56,56,131,56,56,56,56,56,
+Phenytoin sodium 300mg caps,42134511000001100,56,FSP1,56,56,56,84,56,56,56,84,28,28,28,28,
+Phenytoin sodium 50mg caps,42134611000001101,140,101,140,140,140,140,188,180,140,168,140,140,140,140,
+Pioglitazone 15mg tablets,,28,FSP1,28,27,28,28,28,28,28,,,28,28,56,
+Pioglitazone 30mg tablets,42086311000001102,112,259,112,115,139,112,140,140,196,140,196,140,224,112,
+Pioglitazone 45mg tablets,42086411000001109,84,FSP1,84,61,84,112,84,84,55,28,28,28,42,56,
+Pipexus 0.52mg modified-release tablets,33662711000001101,28,FSP1,28,28,28,28,27,28,28,28,28,48,28,28,
+Piriton 4mg tablets,372011000001107,,FSP1,,84,83,84,84,168,211,83,84,,,84,
+Pivmecillinam 200mg tablets,,,,,,,,,,,,,,56,28,
+Pizotifen 1.5mg tablets,42110411000001104,487,139,487,476,532,532,364,448,196,392,276,476,308,392,
+Pizotifen 500microgram tablets,42110511000001100,392,140,392,454,476,812,504,504,616,532,476,420,446,534,
+Pramipexole 180microgram tablets,42039511000001108,,FSP1,,28,28,,,,,28,28,28,28,28,
+Pramipexole 350microgram tablets,,28,FSP1,28,28,28,28,28,56,28,,,,,,
+Pramipexole 88microgram tablets,323208008,160,FSP1,160,168,165,350,168,168,220,219,279,280,280,224,
+Prasugrel 10mg tablets,443469008,28,FSP1,28,28,,,,,,,,,,,
+Prasugrel 5mg tablets,443088009,56,FSP1,56,28,28,28,28,28,28,56,56,56,84,28,
+Pravastatin 10mg tablets,42379811000001108,84,FSP1,84,83,83,84,84,84,112,83,56,56,56,56,
+Pravastatin 20mg tablets,42379911000001103,56,FSP1,56,56,56,28,28,84,84,112,84,56,112,84,
+Pravastatin 40mg tablets,42380011000001102,162,FSP1,162,112,84,84,112,130,155,140,112,112,140,166,
+Prazosin 500microgram tablets,321311000001100,733,313,733,616,952,908,560,1312,1140,784,756,840,672,924,
+Prazosin 5mg tablets,,56,FSP1,56,56,56,56,56,56,56,112,,56,56,,
+Prednisolone 1mg tablets,325426006,191,FSP2,191,136,224,164,252,252,252,248,248,280,555,278,
+Prednisolone 2.5mg gastro-resistant tablets,,28,,28,,56,28,,,,,,,,,
+Prednisolone 5mg gastro-resistant tablets,42087211000001107,56,FSP2,56,56,56,56,56,112,56,56,56,56,56,56,
+Prednisolone 5mg tablets,42087311000001104,533,161,533,341,210,371,350,398,354,336,280,357,473,448,
+Pregabalin 100mg caps,42135011000001107,2903,110,2903,2395,2793,3402,2380,2997,2490,2605,2268,2538,2604,2324,
+Pregabalin 150mg caps,42135111000001108,2720,87,2720,2372,2309,2168,1904,2722,2195,2254,1820,1877,2011,1879,
+Pregabalin 200mg caps,42135211000001102,2028,15,2028,1764,1478,1564,1469,1678,1566,1521,1400,1288,1670,1368,
+Pregabalin 225mg caps,42135311000001105,349,45,349,308,308,448,336,476,392,504,364,420,420,448,
+Pregabalin 25mg caps,42135411000001103,792,86,792,790,1036,672,756,868,588,672,448,644,798,588,
+Pregabalin 300mg caps,42135511000001104,3130,19,3130,2626,2772,3294,2908,3413,3700,3303,2807,2940,3222,3072,
+Pregabalin 50mg caps,42135611000001100,1263,112,1263,929,1120,1307,986,924,1428,1120,967,1176,940,840,
+Pregabalin 75mg caps,42135711000001109,1660,73,1660,1321,1592,1540,1428,1199,1420,1554,1316,1280,1441,1277,
+Priadel 200mg modified-release tablets,565011000001106,546,,546,,530,555,721,812,966,938,784,714,770,742,
+Priadel 400mg modified-release tablets,3832311000001102,728,,728,,610,894,644,868,868,784,812,702,728,784,
+Primidone 250mg tablets,,,,,,,,,,,,,28,56,28,
+Primidone 50mg tablets,42136011000001103,336,FSP1,336,336,336,275,361,390,280,212,224,224,196,56,
+Prochlorperazine 5mg tablets,42040311000001105,476,294,476,448,418,532,364,443,490,367,364,196,364,364,
+Procyclidine 5mg tablets,42040411000001103,1982,287,1982,1442,1820,1570,1764,2106,2001,1764,1670,1592,1836,1330,
+Progesterone micronised 100mg caps,11763511000001102,,,,,,56,56,56,56,56,112,4,,,
+Promethazine hydrochloride 10mg tablets,42040511000001104,167,FSP1,167,84,,196,84,84,84,84,155,196,140,140,
+Promethazine hydrochloride 20mg tablets,,,,,,,,,28,28,28,,28,56,,
+Promethazine hydrochloride 25mg tablets,42040711000001109,1992,192,1992,1388,1165,1614,1505,1750,1690,1610,1572,1733,2042,1652,
+Propantheline bromide 15mg tablets,,222,FSP1,222,308,308,473,306,218,245,168,,168,,,
+Propranolol 10mg tablets,42380111000001101,2378,286,2378,2222,2185,2374,1932,2100,2100,2464,2021,2128,3052,2352,
+Propranolol 160mg modified-release caps,38751211000001101,137,,137,,84,82,112,112,112,134,84,138,168,112,
+Propranolol 40mg tablets,42380311000001104,5479,281,5479,3668,3839,4524,4084,5256,4856,5012,4144,4410,4408,3665,
+Propranolol 80mg modified-release caps,38751111000001107,112,98,112,57,364,476,529,403,551,448,448,448,588,455,
+Propranolol 80mg tablets,42380511000001105,420,129,420,374,420,412,420,476,616,532,308,532,420,420,
+Propylthiouracil 100mg tablets,40087611000001101,112,FSP1,112,56,56,56,56,55,56,56,53,55,112,56,
+Propylthiouracil 50mg tablets,325332002,279,FSP1,279,196,196,196,165,139,112,196,112,112,140,84,
+Prucalopride 1mg tablets,16604011000001101,,,,,112,56,54,55,54,56,56,56,112,56,
+Prucalopride 2mg tablets,1.66E+16,28,FSP1,28,28,28,28,28,28,56,28,28,28,28,28,
+Pyridostigmine bromide 60mg tablets,42041011000001103,126,FSP1,126,84,126,63,126,126,126,126,126,126,63,126,
+Pyridoxine 50mg tablets,41987911000001108,26,FSP2,26,138,56,28,56,56,56,56,56,56,56,56,
+Quetiapine 100mg tablets,42278011000001103,1120,244,1120,850,616,1088,840,980,1148,1036,896,1038,1137,1232,
+Quetiapine 150mg tablets,39703111000001104,596,32,596,519,502,691,608,728,728,672,504,672,728,672,
+Quetiapine 200mg modified-release tablets,42278111000001102,28,FSP3,28,56,28,53,28,28,28,28,28,28,28,28,
+Quetiapine 200mg tablets,42278211000001108,1096,56,1096,1001,980,972,1064,1036,1204,1148,840,1036,1074,616,
+Quetiapine 25mg tablets,42278311000001100,4274,239,4274,3431,4242,4564,3542,4830,4453,3961,3442,4305,4175,4018,
+Quetiapine 300mg modified-release tablets,42278411000001107,140,MDU,140,112,56,56,56,56,56,56,112,112,111,112,
+Quetiapine 300mg tablets,42278511000001106,476,57,476,428,252,364,308,364,364,252,196,168,252,196,
+Quetiapine 400mg modified-release tablets,42278611000001105,,,,,,,,28,28,28,28,,27,28,
+Quetiapine 400mg tablets,,84,FSP2,84,54,84,56,28,55,,56,,56,,,
+Quetiapine 50mg modified-release tablets,14042811000001105,249,FSP1,249,220,278,252,224,277,140,224,83,196,140,184,
+Quetiapine 50mg tablets,42684111000001102,447,FSP1,447,356,275,388,364,503,429,335,308,308,224,168,
+Quinine bisulfate 300mg tablets,324915004,28,FSP1,28,34,28,28,28,56,55,28,56,56,56,28,
+Quinine sulfate 200mg tablets,41988211000001100,644,152,644,601,588,724,644,616,757,612,644,588,728,672,
+Quinine sulfate 300mg tablets,41988311000001108,224,236,224,174,280,224,196,196,336,280,280,280,280,251,
+Rabeprazole 20mg gastro-resistant tablets,42357511000001101,,FSP1,,28,,28,56,84,56,55,54,56,84,56,
+Ramipril 1.25mg caps,42381011000001106,1904,95,1904,1655,1533,1705,1707,1961,1820,1967,1577,1636,1852,1622,
+Ramipril 10mg caps,42381211000001101,3976,103,3976,3475,3896,3700,3527,3999,4271,3687,3164,3753,3913,3525,
+Ramipril 10mg tablets,42381311000001109,56,,56,,28,28,56,27,28,28,28,28,28,28,
+Ramipril 2.5mg caps,42381411000001102,4316,16,4316,3279,3573,3820,3695,3808,4131,3613,3164,3472,3950,3279,
+Ramipril 5mg caps,42381611000001104,5664,99,5664,4560,5169,5422,4818,5690,5499,5087,4247,4715,5106,4732,
+Ranolazine 375mg modified-release tablets,15000811000001106,112,,112,,126,112,112,112,168,112,112,168,168,112,
+Ranolazine 500mg modified-release tablets,15000911000001101,,,,,,56,56,112,,56,56,,56,,
+Reagila 1.5mg caps,35853811000001105,,,,,,28,,,29,28,56,28,28,28,
+Reboxetine 4mg tablets,39703311000001102,395,FSP2,395,280,266,182,278,273,259,194,256,280,377,294,
+Regurin XL 60mg caps,15976811000001105,32,FSP1,32,28,28,28,28,56,35,28,28,28,28,28,
+Remedeine Forte tablets,419911000001100,28,FSP2,28,27,28,27,27,28,28,28,28,28,28,28,
+Remedeine tablets,680111000001109,224,23,224,224,224,224,224,224,448,224,224,224,224,224,
+Renavit tablets,22480711000001106,,,,,,,56,,28,28,28,28,28,,
+ReQuip 2mg tablets,379611000001107,,FSP2,,84,83,81,84,167,84,84,84,84,84,84,
+Rifaximin 550mg tablets,41955011000001108,224,FSP1,224,224,224,224,224,280,280,280,224,224,238,168,
+Risedronate sodium 35mg tablets,408027002,4,FSP2,4,4,4,4,8,4,4,4,4,4,4,4,
+Risperidone 1mg tablets,42278711000001101,938,263,938,804,924,936,727,1092,1218,938,1026,826,1076,798,
+Risperidone 250microgram tablets,38696711000001103,245,FSP2,245,84,167,279,196,224,224,222,56,84,84,84,
+Risperidone 2mg tablets,42278911000001104,392,198,392,313,336,280,224,308,336,448,313,363,392,308,
+Risperidone 3mg tablets,42279011000001108,306,199,306,285,168,339,336,280,308,336,280,254,433,280,
+Risperidone 4mg tablets,42279111000001109,112,FSP1,112,28,56,111,94,84,84,112,56,84,56,84,
+Risperidone 500microgram tablets,42279211000001103,447,275,447,336,350,474,614,504,631,553,485,504,672,465,
+Rivaroxaban 15mg tablets,,,,,,,,,,,,,28,,28,
+Rivaroxaban 2.5mg tablets,27810711000001104,,,,,112,56,56,56,56,56,56,56,56,56,
+Rivaroxaban 20mg tablets,19842211000001107,168,162,168,168,112,224,224,224,252,196,196,253,249,195,
+Rivastigmine 1.5mg caps,323369001,56,FSP2,56,56,56,112,56,168,168,112,56,56,,,
+Rivastigmine 3mg caps,323370000,112,,112,,56,56,112,168,112,112,112,112,112,,
+Rivastigmine 4.5mg caps,323371001,,FSP2,,55,56,98,,,,,56,56,,,
+Rivastigmine 6mg caps,323372008,56,FSP3,56,56,56,56,112,112,168,112,56,56,56,56,
+Ropinirole 1mg tablets,42041811000001109,140,334,140,56,152,112,224,364,252,224,196,270,196,308,
+Ropinirole 2mg modified-release tablets,13639711000001102,28,,28,,56,56,56,112,56,56,55,56,,,
+Ropinirole 2mg tablets,42042011000001106,166,FSP1,166,84,112,140,54,84,56,56,54,56,40,56,
+Ropinirole 500microgram tablets,3.90E+15,112,FSP1,112,140,110,112,112,168,280,56,56,56,56,56,
+Rosuvastatin 10mg caps,39832311000001101,56,FSP2,56,28,28,56,56,84,56,56,55,56,56,56,
+Rosuvastatin 10mg tablets,42297211000001100,364,288,364,313,504,336,336,364,336,364,308,336,336,308,
+Rosuvastatin 20mg tablets,42297311000001108,504,156,504,271,392,452,304,418,369,420,276,280,364,388,
+Rosuvastatin 30mg tablets,,56,,56,,28,56,28,28,28,56,,28,56,28,
+Rosuvastatin 40mg tablets,408024009,88,231,88,84,112,56,84,112,112,56,56,56,112,56,
+Rosuvastatin 5mg tablets,409108001,504,FSP1,504,345,295,448,352,427,439,540,251,446,776,363,
+Rybelsus 14mg tablets,43168411000001107,28,FSP2,28,28,,,,,,,,,,,
+Rybelsus 3mg tablets,38731811000001101,,,,,,,,,56,28,28,28,28,,
+Sacubitril 24mg / Valsartan 26mg tablets,31142011000001103,1274,FSP1,1274,1314,1671,1301,1535,1848,1735,1537,1408,1455,1429,1203,
+Sacubitril 49mg / Valsartan 51mg tablets,31142111000001102,792,FSP1,792,566,892,560,728,1120,672,840,574,616,616,784,
+Sacubitril 97mg / Valsartan 103mg tablets,31142211000001108,912,FSP1,912,728,952,1058,1063,836,1174,899,896,896,1008,840,
+Salofalk 1g gastro-resistant tablets,35205211000001105,84,FSP3,84,84,78,84,84,84,84,84,84,147,84,84,
+Saxagliptin 5mg tablets,39703911000001101,,,,,,,28,28,56,28,28,,,,
+Securon SR 240mg tablets,5.40E+14,84,FSP1,84,56,56,84,56,56,56,56,56,56,84,56,
+Semaglutide 14mg tablets,3.88E+16,,,,,28,28,28,84,84,84,28,84,56,84,
+Semaglutide 7mg tablets,,,FSP1,,28,28,28,28,56,28,,,,28,28,
+Senna 7.5mg tablets,42358311000001108,9580,541,9580,7780,8337,9748,8920,10546,11224,10063,8791,9644,11376,9730,
+Seroxat 20mg tablets,,,,,,,,,,,56,,112,56,56,
+Sertraline 100mg tablets,39704011000001103,8234,272,8234,7091,6680,7712,6519,8175,7966,7279,6630,7517,7207,6271,
+Sertraline 25mg tablets,39134011000001104,250,FSP1,250,140,140,112,139,223,140,133,84,112,168,112,
+Sertraline 50mg tablets,39704111000001102,3808,34,3808,3120,3175,3316,3129,3692,3894,3693,3024,3473,3820,3204,
+Sevelamer 800mg tablets,18291211000001101,,,,,,,84,84,84,168,84,84,168,84,
+Sildenafil 25mg tablets,,,,,,,84,82,,,,,,,,
+Sildenafil 50mg tablets,326714007,56,FSP2,56,56,56,106,56,56,56,56,56,56,56,56,
+Simvastatin 10mg tablets,319996000,140,FSP1,140,83,168,112,84,112,195,112,140,84,56,56,
+Simvastatin 20mg tablets,42382111000001102,2328,284,2328,1762,2041,1932,2077,2464,2714,2444,2217,2646,2968,2436,
+Simvastatin 40mg tablets,42382311000001100,4691,49,4691,3845,4310,4604,4329,5468,5400,5238,4272,4856,5696,4538,
+Simvastatin 80mg tablets,320006003,28,FSP1,28,28,56,56,28,28,28,28,28,28,28,28,
+Sinemet 12.5mg/50mg tablets,236411000001107,504,FSP1,504,502,728,280,502,502,852,504,386,392,392,392,
+Sinemet CR 50mg/200mg tablets,826111000001108,28,MDU,28,28,56,,28,28,36,28,28,28,28,28,
+Sinemet Plus 25mg/100mg tablets,5584511000001101,112,FSP3,112,112,252,252,252,392,364,252,139,,,,
+Sitagliptin 100mg tablets,42089711000001108,839,273,839,644,806,859,701,783,798,868,728,889,1171,868,
+Sitagliptin 25mg tablets,42089811000001100,111,FSP1,111,111,112,56,84,139,28,56,56,56,56,56,
+Sitagliptin 50mg tablets,,83,FSP1,83,28,28,56,56,56,84,28,,28,28,,
+Sodium bicarbonate 500mg caps,41988711000001107,224,74,224,560,168,168,336,532,644,840,840,896,980,700,
+Sodium chloride 600mg modified-release tablets,3.28E+08,84,FSP1,84,84,84,84,84,196,138,168,84,84,84,,
+Sodium valproate 200mg gastro-resistant tablets,4.21E+16,137,FSP3,137,138,138,140,139,140,140,140,56,182,224,56,
+Sodium valproate 500mg gastro-resistant tablets,42137111000001104,84,FSP1,84,84,84,84,84,168,,84,84,84,84,84,
+Solifenacin 10mg tablets,42042811000001100,896,238,896,877,840,993,971,1033,1176,1057,868,983,1106,884,
+Solifenacin 5mg tablets,42042911000001105,1214,26,1214,879,1092,1142,991,1319,1204,1286,996,1116,1316,1036,
+Solifenacin 6mg / Tamsulosin 400microgram modified-release tablets,23676211000001102,,,,,28,28,28,28,28,56,28,28,28,28,
+Solpadol 30mg/500mg caplets,341211000001105,224,FSP1,224,220,224,224,224,448,224,224,224,224,224,224,
+Sotalol 40mg tablets,,56,FSP1,56,56,56,55,56,56,56,112,,168,56,47,
+Spironolactone 100mg tablets,42216411000001104,168,202,168,168,224,168,196,224,222,196,196,196,280,168,
+Spironolactone 12.5mg tablets,39356011000001101,40,FSP2,40,28,28,28,28,43,28,28,28,,,,
+Spironolactone 25mg tablets,42216511000001100,1495,203,1495,1266,1110,1344,1152,1342,1354,1356,1031,1291,1312,1117,
+Spironolactone 50mg tablets,42216611000001101,536,345,536,460,553,504,360,504,588,474,427,504,448,314,
+Stanek 100mg/25mg/200mg tablets,,,,,,,,,224,,,,,,,
+"Stexerol-D3 1,000unit tablets",28003611000001108,,30,,4875,5180,5489,5010,6056,5836,6356,4614,5368,6188,5376,
+Strivit-D3 800unit caps,32686111000001105,,,,,,,,56,56,56,56,56,112,56,
+Sucralfate 1g tablets,317265007,586,FSP1,586,364,581,357,476,476,364,440,448,336,329,448,
+Sulfasalazine 500mg gastro-resistant tablets,42298111000001107,3052,12,3052,1965,1498,2880,1737,2408,2436,2660,1974,2077,2550,1922,
+Sulfasalazine 500mg tablets,317431008,413,FSP1,413,420,277,308,307,306,530,194,194,196,78,84,
+Sulpiride 200mg tablets,42279411000001104,196,FSP1,196,196,392,196,196,196,196,196,196,196,196,294,
+Sulpiride 400mg tablets,321512009,336,,336,,168,168,168,168,165,168,168,168,,,
+Tadalafil 5mg tablets,42090211000001107,28,FSP1,28,28,84,56,56,56,56,84,28,28,28,56,
+Tamoxifen 20mg tablets,,56,FSP2,56,56,28,,,,,,,,,,
+Tamsulosin 400microgram / Dutasteride 500microgram caps,,28,FSP1,28,28,,28,,,,,,,,,
+Tamsulosin 400microgram modified-release caps,38754011000001109,3675,91,3675,1210,3625,3711,3215,3796,3843,3940,3134,3343,3871,3161,
+Tegretol 100mg tablets,680511000001100,748,FSP1,748,642,583,588,501,639,532,609,525,560,364,336,
+Tegretol 200mg tablets,443711000001108,446,FSP1,446,392,391,224,252,140,53,196,224,140,140,140,
+Tegretol Prolonged Release 200mg tablets,261911000001101,294,59,294,271,266,420,378,406,378,462,294,602,518,518,
+Tegretol Prolonged Release 400mg tablets,662611000001103,532,50,532,392,448,448,560,560,728,756,420,672,490,462,
+Telmisartan 80mg tablets,318987008,56,FSP1,56,28,28,28,28,28,28,28,28,28,28,56,
+Terbinafine 250mg tablets,,,,,,,,,,,,,,28,,
+Tetrabenazine 25mg tablets,,56,FSP1,56,56,56,56,56,56,,,,,,,
+Theophylline 200mg modified-release tablets,35917711000001108,224,,224,,112,224,112,280,224,168,168,168,224,224,
+Theophylline 300mg modified-release tablets,35918011000001107,56,,56,,111,224,112,112,168,124,112,112,224,112,
+Theophylline 400mg modified-release tablets,35918111000001108,112,186,112,56,56,112,,112,168,56,56,56,56,112,
+Thiamine 100mg tablets,41989511000001108,3563,324,3563,3238,3020,3579,3416,3977,4160,3837,2976,3708,3600,2982,
+Thiamine 50mg tablets,41989611000001107,18560,22,18560,14309,15864,15113,13609,16626,17474,16153,14046,16116,17500,14507,
+Tibolone 2.5mg tablets,,,,,,,,,,,,,28,,,
+Ticagrelor 90mg tablets,4.23E+16,224,FSP1,224,166,224,168,168,224,168,279,167,280,280,224,
+Tildiem 60mg modified-release tablets,762011000001102,84,FSP2,84,83,,168,84,83,84,84,84,84,168,84,
+Tildiem LA 200 caps,261611000001107,112,96,112,140,139,196,140,198,158,133,140,106,140,146,
+Tildiem LA 300 caps,893111000001107,56,89,56,84,28,28,28,28,28,28,28,49,28,56,
+Tildiem Retard 120mg tablets,383911000001109,588,309,588,413,364,539,364,364,431,364,308,360,476,392,
+Tizanidine 2mg tablets,3.30E+08,976,FSP1,976,308,308,530,305,308,306,611,84,308,308,224,
+Tolterodine 1mg tablets,4.20E+16,112,FSP1,112,108,56,111,,56,56,56,54,56,56,112,
+Tolterodine 2mg tablets,42043811000001108,224,305,224,112,168,224,112,168,123,168,112,168,168,112,
+Tolterodine 4mg modified-release caps,14608411000001108,250,68,250,174,252,224,140,196,224,224,196,196,196,112,
+Topamax 100mg tablets,,56,FSP1,56,56,56,56,56,56,56,112,,56,56,56,
+Topamax 25mg tablets,,168,FSP2,168,166,166,168,168,,,,,,,,
+Topamax 50mg sprinkle caps,37414611000001107,140,FSP1,140,140,140,140,130,270,138,137,140,140,140,140,
+Topiramate 100mg tablets,42137411000001109,168,249,168,140,252,234,196,308,252,196,196,306,280,224,
+Topiramate 200mg tablets,42137511000001108,112,250,112,182,168,262,168,280,168,168,280,280,335,280,
+Topiramate 25mg tablets,42137611000001107,280,228,280,342,230,363,336,168,420,420,268,364,477,280,
+Topiramate 50mg tablets,42137711000001103,532,248,532,308,364,280,305,571,448,532,252,476,504,336,
+Torasemide 5mg tablets,4.23E+16,56,,56,,56,28,26,28,28,28,28,28,28,28,
+Tramadol 100mg modified-release caps,35920211000001106,28,,28,,112,28,84,28,28,55,28,28,28,28,
+Tramadol 50mg caps,42017811000001106,7145,504,7145,6020,6748,7063,5248,6378,6502,5440,5723,5713,7336,6014,
+Tramulief SR 100mg tablets,1.28E+16,112,FSP2,112,56,56,56,,,,56,56,56,,56,
+Trazodone 100mg caps,42280411000001104,1616,67,1616,1403,1382,1848,1008,1204,1513,1538,1232,1204,1306,1278,
+Trazodone 150mg tablets,42280611000001101,868,160,868,504,727,878,756,953,1084,945,840,972,1224,980,
+Trazodone 50mg caps,42280711000001105,1428,80,1428,1318,1331,1931,1527,1823,1818,1834,1400,1694,2128,1652,
+Trazodone 50mg tablets,42280811000001102,,,,,,,56,56,56,56,56,56,112,,
+Trihexyphenidyl 2mg tablets,42043911000001103,236,200,236,178,252,84,168,56,28,140,84,48,140,112,
+Trihexyphenidyl 5mg tablets,42044011000001100,168,206,168,168,168,168,168,252,197,168,168,159,196,168,
+Trimethoprim 100mg tablets,41956111000001103,112,FSP1,112,112,140,168,140,224,112,112,140,84,84,112,
+Trimethoprim 200mg tablets,41956211000001109,28,FSP2,28,28,,56,28,28,28,28,28,,28,28,
+Trospium chloride 20mg tablets,326559001,56,FSP3,56,56,56,,,,,,56,56,56,56,
+Trospium chloride 60mg modified-release caps,42044211000001105,28,,28,,28,27,28,28,112,84,84,56,56,56,
+Uniphyllin Continus 200mg tablets,35917711000001108,448,252,448,404,391,489,336,448,560,560,560,504,503,504,
+Uniphyllin Continus 300mg tablets,35918011000001107,56,185,56,112,56,56,56,56,56,168,112,112,56,112,
+Uniphyllin Continus 400mg tablets,35918111000001108,112,186,112,112,112,112,112,112,56,56,56,112,112,,
+Ursodeoxycholic acid 250mg caps,42359411000001109,84,FSP1,84,84,,,,84,84,84,84,84,84,84,
+Ursodeoxycholic acid 500mg tablets,22155311000001106,168,FSP1,168,168,168,112,214,223,168,224,168,112,112,112,
+Valaciclovir 500mg tablets,,28,FSP1,28,28,28,28,28,28,28,56,,56,28,28,
+Valproic acid 250mg gastro-resistant tablets,134538003,346,FSP1,346,224,280,280,336,560,331,280,224,224,224,224,
+Valproic acid 500mg gastro-resistant caps,42138211000001109,,,,,,,,112,56,56,56,56,56,56,
+Valproic acid 500mg gastro-resistant tablets,134537008,224,FSP1,224,112,168,168,224,336,168,168,168,168,112,112,
+Valsartan 320mg tablets,3.76E+08,28,FSP2,28,33,28,,28,56,28,28,28,28,28,28,
+Valsartan 40mg caps,4.24E+16,56,FSP2,56,28,28,28,28,28,28,28,28,28,56,28,
+Valsartan 80mg caps,318962001,82,FSP1,82,28,28,56,28,56,56,56,56,56,84,28,
+Valsartan 80mg tablets,375034009,,,,,,,28,28,28,28,28,28,28,25,
+Vencarm XL 150mg caps,,54,FSP1,54,56,56,56,56,,,,,,,,
+Vencarm XL 225mg caps,34180611000001109,28,FSP1,28,56,56,84,56,56,56,56,56,56,56,84,
+Venlafaxine 150mg modified-release caps,38750411000001106,476,82,476,182,364,448,434,476,645,588,421,504,728,588,
+Venlafaxine 150mg modified-release tablets,14984911000001107,1044,320,1044,504,919,1096,784,924,952,930,868,924,1036,728,
+Venlafaxine 225mg modified-release caps,31016011000001103,139,FSP1,139,112,139,140,84,140,56,112,56,84,112,168,
+Venlafaxine 225mg modified-release tablets,15439111000001107,112,331,112,152,84,164,112,112,140,112,140,140,168,112,
+Venlafaxine 300mg modified-release tablets,38003311000001102,112,,112,,75,84,112,140,112,112,39,84,140,84,
+Venlafaxine 37.5mg modified-release caps,23560511000001101,28,FSP2,28,28,56,55,56,84,196,223,224,84,56,28,
+Venlafaxine 37.5mg modified-release tablets,18765111000001101,166,FSP1,166,196,168,196,196,282,140,84,,84,336,168,
+Venlafaxine 37.5mg tablets,39707611000001104,867,163,867,821,812,693,672,756,896,840,703,728,896,448,
+Venlafaxine 75mg modified-release caps,38750311000001104,588,71,588,98,336,560,420,392,616,534,448,504,588,448,
+Venlafaxine 75mg modified-release tablets,14985011000001107,536,42,536,385,518,500,462,665,649,644,504,560,672,448,
+Venlafaxine 75mg tablets,39707411000001102,3024,210,3024,2821,3123,2822,2744,3807,3343,3400,2968,2940,3569,2688,
+Verapamil 120mg modified-release tablets,35367911000001103,84,,84,,84,111,84,106,56,56,56,56,56,84,
+Verapamil 120mg tablets,42217111000001107,168,FSP2,168,84,84,84,82,84,84,84,84,84,168,84,
+Verapamil 240mg modified-release tablets,318213008,140,FSP1,140,140,140,140,167,191,111,112,84,84,112,140,
+Verapamil 40mg tablets,,,,,,,,,,,,,84,84,,
+Verapamil 80mg tablets,42217411000001102,84,FSP3,84,84,84,84,126,83,84,84,84,84,84,84,
+Vesicare 5mg tablets,8045211000001101,,,,,,,,,,,28,28,28,25,
+Vibegron 75mg tablets,,28,FSP1,28,28,28,,,,,,,,,,
+Vigabatrin 500mg tablets,322977004,,,,,168,168,327,165,168,168,168,162,168,168,
+Vitamin B compound strong tablets,34820511000001105,28,FSP1,28,31,26,28,28,28,28,32,27,28,56,,
+Vitamins A and D caps BPC 1973,,,,,,,,,,,,,,,28,
+Vitamins caps,,28,MDU,28,28,28,28,28,28,28,28,,84,112,56,
+Vortioxetine 10mg tablets,30738611000001105,,,,,,,28,48,,,28,28,28,28,
+Vortioxetine 20mg tablets,,56,FSP1,56,55,56,28,,,,,,,,,
+Vortioxetine 5mg tablets,30738811000001109,,,,,,,28,48,,,28,28,28,,
+Yaltormin SR 1000mg tablets,35548311000001108,102,FSP1,102,102,98,56,56,112,56,56,56,56,,,
+Zamadol SR 200mg caps,35920711000001104,110,FSP1,110,56,56,56,56,112,112,110,112,112,112,168,
+Zamadol SR 50mg caps,35940111000001103,84,FSP1,84,84,83,56,56,56,150,56,54,56,56,56,
+Zemtard 120 XL caps,105211000001107,,,,,,,,56,84,55,56,56,56,56,
+Zemtard 240 XL caps,345411000001107,56,FSP1,56,28,28,28,28,28,28,28,28,28,28,56,
+Zemtard 300 XL caps,866811000001107,112,FSP1,112,84,84,84,56,56,56,56,56,56,56,84,
+Zolpidem 10mg tablets,42138811000001105,506,121,506,481,420,419,392,448,532,463,482,476,560,390,
+Zolpidem 5mg tablets,42138911000001100,228,181,228,224,196,252,168,196,252,112,224,112,112,112,
+Zonegran 100mg caps,9304111000001104,224,FSP1,224,165,168,168,168,276,168,167,168,168,168,224,
+Zonegran 50mg caps,9303911000001103,56,FSP2,56,56,56,56,56,112,56,56,56,56,56,56,
+Zonisamide 100mg caps,,392,FSP2,392,224,280,112,56,56,56,,,,,,
+Zonisamide 25mg caps,,,,,,,,,,,,,,28,,
+Zonisamide 50mg caps,,168,FSP3,168,111,112,56,56,56,56,112,,56,56,56,
+Zopiclone 3.75mg tablets,42139311000001107,267,133,267,280,224,338,343,280,476,280,309,420,504,364,
+Zopiclone 7.5mg tablets,42139411000001100,1711,167,1711,1189,1382,1564,1355,1579,1593,1512,1229,1402,1560,1313,
+Zuclopenthixol 10mg tablets,321564003,83,FSP1,83,168,,,,,,,,,112,112,
+Zuclopenthixol 2mg tablets,,,,,,,,,,,,,,112,112,
+Co-trimoxazole 160mg/800mg tablets,,12,,12,,,,,,,,,,,,
+Colecalciferol 1000unit caps,,,,,,,,,,,,,,,,
+Colecalciferol 1000unit tablets,,,,,,,,,,,,,,,,
+ColeKal-D3 1000unit tablets,,,,,,,,,,,,,,,,
+Dantrolene 25mg caps,,896,,896,,,,,,,,,,,,
+Diclofenac sodium 25mg gastro-resistant tablets,,166,,166,,,,,,,,,,,,
+Fesoterodine 4mg modified-release tablets,,44,,44,,,,,,,,,,,,
+Levodopa 125mg / Carbidopa 31.25mg / Entacapone 200mg tablets,,224,,224,,,,,,,,,,,,
+Liothyronine 5microgram tablets,,26,,26,,,,,,,,,,,,
+Ramipril 5mg tablets,,27,,27,,,,,,,,,,,,
+rybelsus 9mg tablets,,28,,28,,,,,,,,,,,,
+Stexerol-D3 1000unit tablets,,6160,,6160,,,,,,,,,,,,
+Tacrolimus 1mg modified-release caps,,28,,28,,,,,,,,,,,,`;
+
+        let stockData = [];
+        let displayedData = [];
+        let currentSort = { column: null, ascending: true };
+
+        // Load hardcoded CSV data on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            processCSV(CSV_DATA);
+        });
+
+        function processCSV(csv) {
+            try {
+                const lines = csv.split("\n");
+                
+                if (lines.length < 2) {
+                    throw new Error("CSV data appears to be empty");
+                }
+
+                const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+                
+                // Find column indices
+                const productIdx = headers.indexOf("product");
+                const vmpIdx = headers.indexOf("vmp");
+                const usageIdx = headers.indexOf("usage");
+                const canisterIdx = headers.indexOf("canister");
+                const febIdx = headers.indexOf("february");
+                const janIdx = headers.indexOf("january");
+                const decIdx = headers.indexOf("december");
+                const novIdx = headers.indexOf("november");
+                const octIdx = headers.indexOf("october");
+                const sepIdx = headers.indexOf("september");
+
+                if (productIdx === -1) {
+                    throw new Error("CSV must have a 'PRODUCT' column");
+                }
+
+                stockData = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    // More robust CSV parsing to handle commas in quoted fields
+                    const values = parseCSVLine(line);
+                    
+                    if (values.length > productIdx) {
+                        const product = values[productIdx]?.trim() || "";
+                        if (product) {
+                            stockData.push({
+                                product: product,
+                                vmp: values[vmpIdx]?.trim() || "",
+                                usage: values[usageIdx]?.trim() || "",
+                                canister: values[canisterIdx]?.trim() || "",
+                                feb: values[febIdx]?.trim() || "",
+                                jan: values[janIdx]?.trim() || "",
+                                dec: values[decIdx]?.trim() || "",
+                                nov: values[novIdx]?.trim() || "",
+                                oct: values[octIdx]?.trim() || "",
+                                sep: values[sepIdx]?.trim() || ""
+                            });
+                        }
+                    }
+                }
+
+                if (stockData.length === 0) {
+                    throw new Error("No valid product data found in CSV");
+                }
+
+                const uploadStatus = document.getElementById("uploadStatus");
+                uploadStatus.textContent = "✅ Successfully loaded " + stockData.length + " products!";
+                uploadStatus.className = "upload-status show upload-success";
+                
+                document.getElementById("dbStatus").textContent = "📊 Database: " + stockData.length + " products loaded";
+                document.getElementById("dbStatus").style.background = "#efe";
+                document.getElementById("dbStatus").style.color = "#0a0";
+                
+                document.getElementById("searchInput").disabled = false;
+                document.getElementById("searchBtn").disabled = false;
+                document.getElementById("showAllBtn").disabled = false;
+                document.getElementById("searchInput").focus();
+                
+                document.getElementById("message").innerHTML = "";
+                document.getElementById("results").innerHTML = "";
+                currentSort = { column: null, ascending: true };
+
+            } catch (error) {
+                const uploadStatus = document.getElementById("uploadStatus");
+                uploadStatus.textContent = "❌ Error parsing CSV: " + error.message;
+                uploadStatus.className = "upload-status show upload-error";
+                console.error(error);
+            }
+        }
+
+        function loadCSV() {
+            const fileInput = document.getElementById("csvFile");
+            const file = fileInput.files[0];
+            const uploadStatus = document.getElementById("uploadStatus");
+
+            if (!file) {
+                uploadStatus.textContent = "⚠️ Please select a file first";
+                uploadStatus.className = "upload-status show upload-error";
+                return;
+            }
+
+            if (!file.name.endsWith(".csv")) {
+                uploadStatus.textContent = "❌ Please select a .csv file";
+                uploadStatus.className = "upload-status show upload-error";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processCSV(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = "";
+            let insideQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === "," && !insideQuotes) {
+                    result.push(current);
+                    current = "";
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        function sortData(column) {
+            // Toggle sort direction if clicking same column
+            if (currentSort.column === column) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.column = column;
+                currentSort.ascending = true;
+            }
+
+            displayedData.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+
+                // Convert to numbers if they are numeric
+                const aNum = parseFloat(aVal);
+                const bNum = parseFloat(bVal);
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    aVal = aNum;
+                    bVal = bNum;
+                } else {
+                    // String comparison
+                    aVal = String(aVal).toLowerCase();
+                    bVal = String(bVal).toLowerCase();
+                }
+
+                if (aVal < bVal) return currentSort.ascending ? -1 : 1;
+                if (aVal > bVal) return currentSort.ascending ? 1 : -1;
+                return 0;
+            });
+
+            displayTable(displayedData);
+            updateSortIndicator();
+        }
+
+        function updateSortIndicator() {
+            if (currentSort.column) {
+                document.getElementById("sortIndicator").textContent = 
+                    "Sorted by: " + currentSort.column + " (" + (currentSort.ascending ? "ascending" : "descending") + ")";
+            } else {
+                document.getElementById("sortIndicator").textContent = "";
+            }
+        }
+
+        const searchInput = document.getElementById("searchInput");
+        const autocompleteList = document.getElementById("autocompleteList");
+        let currentHighlight = -1;
+
+        // Event listener for input changes
+        searchInput.addEventListener("input", function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            if (searchTerm.length === 0) {
+                autocompleteList.classList.remove("active");
+                document.getElementById("message").innerHTML = "";
+                document.getElementById("results").innerHTML = "";
+                document.getElementById("paginationInfo").innerHTML = "";
+                document.getElementById("sortIndicator").innerHTML = "";
+                return;
+            }
+
+            const matches = stockData.filter(item => 
+                item.product.toLowerCase().includes(searchTerm)
+            );
+
+            if (matches.length === 0) {
+                autocompleteList.innerHTML = '<div class="autocomplete-count">No matches found</div>';
+                autocompleteList.classList.add("active");
+                return;
+            }
+
+            // Limit displayed suggestions to 50 for performance
+            const displayMatches = matches.slice(0, 50);
+            let html = '<div class="autocomplete-count">Found ' + matches.length + ' match' + (matches.length === 1 ? '' : 'es') + (matches.length > 50 ? ' (showing first 50)' : '') + '</div>';
+            
+            displayMatches.forEach((item, index) => {
+                const highlightedText = item.product.replace(
+                    new RegExp(searchTerm, 'gi'),
+                    match => '<strong>' + match + '</strong>'
+                );
+                html += '<div class="autocomplete-item" onclick="selectProduct(' + index + ', ' + displayMatches.length + ')">' + highlightedText + '</div>';
+            });
+
+            autocompleteList.innerHTML = html;
+            autocompleteList.classList.add("active");
+            currentHighlight = -1;
+        });
+
+        // Keyboard navigation
+        searchInput.addEventListener("keydown", function(event) {
+            const items = autocompleteList.querySelectorAll(".autocomplete-item");
+            
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                currentHighlight = Math.min(currentHighlight + 1, items.length - 1);
+                updateHighlight(items);
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                currentHighlight = Math.max(currentHighlight - 1, 0);
+                updateHighlight(items);
+            } else if (event.key === "Enter") {
+                event.preventDefault();
+                if (currentHighlight >= 0) {
+                    items[currentHighlight].click();
+                } else {
+                    searchProducts();
+                }
+            } else if (event.key === "Escape") {
+                autocompleteList.classList.remove("active");
+            }
+        });
+
+        function updateHighlight(items) {
+            items.forEach((item, index) => {
+                item.classList.remove("selected");
+                if (index === currentHighlight) {
+                    item.classList.add("selected");
+                    item.scrollIntoView({ block: "nearest" });
+                }
+            });
+        }
+
+        function selectProduct(index, totalMatches) {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const matches = stockData.filter(item => 
+                item.product.toLowerCase().includes(searchTerm)
+            );
+            
+            if (matches[index]) {
+                searchInput.value = matches[index].product;
+                autocompleteList.classList.remove("active");
+                displayedData = [matches[index]];
+                displayTable(displayedData);
+                document.getElementById("message").innerHTML = '<div class="success">✓ Selected: ' + matches[index].product + '</div>';
+            }
+        }
+
+        function displayTable(data) {
+            if (data.length === 0) {
+                document.getElementById("results").innerHTML = '<div class="no-results">No products found</div>';
+                document.getElementById("paginationInfo").innerHTML = "";
+                return;
+            }
+
+            let tableHTML = '<div class="table-wrapper"><table><thead><tr>';
+            
+            const columns = ["product", "vmp", "usage", "canister", "feb", "jan", "dec", "nov", "oct", "sep"];
+            const labels = ["Product", "VMP", "Usage", "Canister", "Feb", "Jan", "Dec", "Nov", "Oct", "Sep"];
+            
+            columns.forEach((col, idx) => {
+                const isSorted = currentSort.column === col;
+                const sortClass = isSorted ? (currentSort.ascending ? 'sorted-asc' : 'sorted-desc') : 'sortable';
+                tableHTML += '<th class="' + sortClass + '" onclick="sortData(\'' + col + '\')">' + labels[idx] + '</th>';
+            });
+            
+            tableHTML += '</tr></thead><tbody>';
+
+            data.forEach(item => {
+                tableHTML += '<tr>';
+                tableHTML += '<td><strong>' + item.product + '</strong></td>';
+                tableHTML += '<td>' + item.vmp + '</td>';
+                tableHTML += '<td>' + item.usage + '</td>';
+                tableHTML += '<td>' + item.canister + '</td>';
+                tableHTML += '<td>' + item.feb + '</td>';
+                tableHTML += '<td>' + item.jan + '</td>';
+                tableHTML += '<td>' + item.dec + '</td>';
+                tableHTML += '<td>' + item.nov + '</td>';
+                tableHTML += '<td>' + item.oct + '</td>';
+                tableHTML += '<td>' + item.sep + '</td>';
+                tableHTML += '</tr>';
+            });
+
+            tableHTML += '</tbody></table></div>';
+            document.getElementById("results").innerHTML = tableHTML;
+            document.getElementById("paginationInfo").innerHTML = '<p>Displaying ' + data.length + ' product' + (data.length === 1 ? '' : 's') + '</p>';
+        }
+
+        function searchProducts() {
+            if (stockData.length === 0) {
+                document.getElementById("message").innerHTML = '<div class="error">⚠️ Please load a CSV file first</div>';
+                return;
+            }
+
+            const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+            const messageDiv = document.getElementById("message");
+            const resultsDiv = document.getElementById("results");
+
+            messageDiv.innerHTML = "";
+            resultsDiv.innerHTML = "";
+            autocompleteList.classList.remove("active");
+
+            if (searchTerm.length < 1) {
+                messageDiv.innerHTML = '<div class="error">⚠️ Please enter a search term.</div>';
+                return;
+            }
+
+            const matches = stockData.filter(item => 
+                item.product.toLowerCase().includes(searchTerm)
+            );
+
+            if (matches.length === 0) {
+                messageDiv.innerHTML = '<div class="error">❌ No products found matching "' + searchTerm + '"</div>';
+                return;
+            }
+
+            displayedData = matches;
+            messageDiv.innerHTML = '<div class="success">✓ Found ' + matches.length + ' matching product(s)</div>';
+            displayTable(displayedData);
+            currentSort = { column: null, ascending: true };
+            updateSortIndicator();
+        }
+
+        function showAll() {
+            if (stockData.length === 0) {
+                document.getElementById("message").innerHTML = '<div class="error">⚠️ Please load a CSV file first</div>';
+                return;
+            }
+
+            const messageDiv = document.getElementById("message");
+            messageDiv.innerHTML = '<div class="success">✓ Displaying all ' + stockData.length + ' products in database</div>';
+            document.getElementById("searchInput").value = "";
+            autocompleteList.classList.remove("active");
+            displayedData = [...stockData];
+            displayTable(displayedData);
+            currentSort = { column: null, ascending: true };
+            updateSortIndicator();
+        }
+
+        function clearSearch() {
+            document.getElementById("searchInput").value = "";
+            document.getElementById("message").innerHTML = "";
+            document.getElementById("results").innerHTML = "";
+            document.getElementById("paginationInfo").innerHTML = "";
+            document.getElementById("sortIndicator").innerHTML = "";
+            autocompleteList.classList.remove("active");
+            currentSort = { column: null, ascending: true };
+            if (stockData.length > 0) {
+                document.getElementById("searchInput").focus();
+            }
+        }
+
+        // Close autocomplete when clicking outside
+        document.addEventListener("click", function(event) {
+            if (!event.target.closest(".input-wrapper") && !event.target.closest(".search-box")) {
+                autocompleteList.classList.remove("active");
+            }
+        });
+    </script>
+</body>
+</html>
