@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pouch Breakdown by shop</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #aabaea 0%, #437ea2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .upload-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .file-label.success {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .filter-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .filter-section.show {
+            display: block;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .filter-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .filter-content {
+            display: none;
+            padding: 20px 0;
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-content.active {
+            display: block;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .date-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .date-input-group label {
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .date-input-group input,
+        .date-input-group select {
+            padding: 10px 12px;
+            border: 1px solid #999;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .date-input-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 20px;
+            padding-right: 35px;
+        }
+
+        .separator {
+            height: 2px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            margin: 20px 0;
+        }
+
+        .display-options {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .display-options.show {
+            display: block;
+        }
+
+        .display-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .display-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .display-option label {
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .grouping-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #ffc107;
+        }
+
+        .grouping-section.show {
+            display: block;
+        }
+
+        .grouping-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .location-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .location-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .location-item:hover {
+            border-color: #667eea;
+            background: #f9f9f9;
+        }
+
+        .location-item.selected {
+            border-color: #667eea;
+            background: #e3f2fd;
+        }
+
+        .location-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .location-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .location-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .grouping-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .group-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn-group {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-remove-grouping {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-remove-grouping:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .active-groups {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .active-groups.show {
+            display: block;
+        }
+
+        .group-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 5px 5px 5px 0;
+            font-size: 12px;
+        }
+
+        .group-badge .remove-group {
+            cursor: pointer;
+            margin-left: 8px;
+            font-weight: 700;
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .left-panel, .right-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .qty-column {
+            text-align: right;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .percentage-column {
+            text-align: right;
+            font-weight: 600;
+            color: #764ba2;
+            font-size: 12px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 20px;
+        }
+
+        .chart-container canvas {
+            max-height: 350px;
+        }
+
+        .summary-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .button-section {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .export-btn, .print-btn, .clear-filter-btn, .apply-btn {
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .export-btn, .print-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .export-btn:hover, .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .print-btn:hover {
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .clear-filter-btn {
+            background: linear-gradient(135deg, #f5576c 0%, #ff6b6b 100%);
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .clear-filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .apply-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .apply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .filter-info {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #1565c0;
+            display: none;
+        }
+
+        .debug-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #856404;
+            display: none;
+            font-family: monospace;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+
+        @media (max-width: 1024px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .upload-section {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .upload-btn {
+                width: 100%;
+            }
+
+            .filter-tabs {
+                flex-wrap: wrap;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .date-input-group input,
+            .date-input-group select {
+                min-width: 100%;
+            }
+
+            .location-list {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-section {
+                grid-template-columns: 1fr;
+            }
+
+            .button-section {
+                flex-direction: column;
+            }
+
+            .export-btn, .print-btn {
+                width: 100%;
+            }
+        }
+
+        @print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+
+            .upload-section, .button-section, .filter-section, .display-options, .grouping-section {
+                display: none;
+            }
+
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚕️ Pouch Breakdown by shop</h1>
+
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)">
+                <button class="upload-btn" onclick="document.getElementById('csvFile').click()">
+                                                  🗃 Upload CSV File
+                </button>
+            </div>
+            <span class="file-label" id="fileLabel">No file selected</span>
+        </div>
+
+        <div class="filter-section" id="filterSection">
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="switchFilterTab(event, 'none')">
+                    ✓ No Filter
+                </button>
+                <button class="filter-tab" onclick="switchFilterTab(event, '7days')">
+                    📅 7-Day Period
+                </button>
+                <button class="filter-tab" onclick="switchFilterTab(event, 'custom')">
+                    📋 Custom Date Range
+                </button>
+                <button class="filter-tab" onclick="switchFilterTab(event, 'month')">
+                    🌙 Specific Month
+                </button>
+            </div>
+
+            <!-- No Filter -->
+            <div id="filterNone" class="filter-content active">
+                <p style="color: #666;">Showing all available data</p>
+            </div>
+
+            <!-- 7-Day Filter -->
+            <div id="filter7days" class="filter-content">
+                <div class="filter-controls">
+                    <div class="date-input-group">
+                        <label for="startDate">Start Date (YYMMDD)</label>
+                        <input type="text" id="startDate" placeholder="260228" maxlength="6" onchange="applyFilter7Days()">
+                    </div>
+                    <span style="padding-bottom: 10px;">to</span>
+                    <div class="date-input-group">
+                        <label for="endDate">End Date (Auto-calculated)</label>
+                        <input type="text" id="endDate" placeholder="260306" readonly style="background: #f0f0f0; color: #666;">
+                    </div>
+                    <button class="clear-filter-btn" onclick="clearFilters()">Clear Filter</button>
+                </div>
+                <div class="filter-info" id="filterInfo7Days"></div>
+            </div>
+
+            <!-- Custom Date Range Filter -->
+            <div id="filterCustom" class="filter-content">
+                <div class="filter-controls">
+                    <div class="date-input-group">
+                        <label for="customStartDate">Start Date (YYMMDD)</label>
+                        <input type="text" id="customStartDate" placeholder="260228" maxlength="6">
+                    </div>
+                    <span style="padding-bottom: 10px;">to</span>
+                    <div class="date-input-group">
+                        <label for="customEndDate">End Date (YYMMDD)</label>
+                        <input type="text" id="customEndDate" placeholder="260310" maxlength="6">
+                    </div>
+                    <button class="apply-btn" onclick="applyCustomDateRange()">Apply Filter</button>
+                    <button class="clear-filter-btn" onclick="clearFilters()">Clear Filter</button>
+                </div>
+                <div class="filter-info" id="filterInfoCustom"></div>
+            </div>
+
+            <!-- Month Filter -->
+            <div id="filterMonth" class="filter-content">
+                <div class="filter-controls">
+                    <div class="date-input-group">
+                        <label for="monthSelect">Month</label>
+                        <select id="monthSelect" onchange="applyFilterMonth()">
+                            <option value="">-- Select Month --</option>
+                            <option value="01">January</option>
+                            <option value="02">February</option>
+                            <option value="03">March</option>
+                            <option value="04">April</option>
+                            <option value="05">May</option>
+                            <option value="06">June</option>
+                            <option value="07">July</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <button class="clear-filter-btn" onclick="clearFilters()">Clear Filter</button>
+                </div>
+                <div class="filter-info" id="filterInfoMonth"></div>
+                <div class="debug-info" id="debugInfo"></div>
+            </div>
+        </div>
+
+        <div class="display-options" id="displayOptions">
+            <div class="display-option">
+                <input type="checkbox" id="showRepairQty" onchange="toggleRepairColumn()">
+                <label for="showRepairQty">Show Qty Repair Column</label>
+            </div>
+        </div>
+
+        <div class="grouping-section" id="groupingSection">
+            <div class="grouping-title">🏷️ Group Locations</div>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Click to select locations you want to group together, then enter a group name</p>
+            <div class="location-list" id="locationList"></div>
+            <div class="grouping-controls">
+                <input type="text" class="group-input" id="groupName" placeholder="Enter group name (e.g., 'Glasgow Area')">
+                <button class="btn-group" onclick="createGroup()">Create Group</button>
+            </div>
+            <div class="active-groups" id="activeGroups">
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px;">Active Groups:</div>
+                <div id="groupsList"></div>
+                <button class="btn-remove-grouping" onclick="clearAllGroups()" style="margin-top: 10px;">Clear All Groups</button>
+            </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="summary-section" id="summarySection" style="display: none;">
+            <div class="summary-item">
+                <div class="summary-label">Total Unique Locations</div>
+                <div class="summary-value" id="locationsCount">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Total Qty Pouches</div>
+                <div class="summary-value" id="totalPouches">0</div>
+            </div>
+            <div class="summary-item" id="repairSummary" style="display: none;">
+                <div class="summary-label">Total Qty Repairs</div>
+                <div class="summary-value" id="totalRepairs">0</div>
+            </div>
+        </div>
+
+        <div class="content-wrapper" id="contentWrapper" style="display: none;">
+            <div class="left-panel">
+                <h2>📋 Results by Location</h2>
+                <div class="table-wrapper">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Location / Group</th>
+                                <th style="text-align: right;">Total Qty Pouches</th>
+                                <th style="text-align: right;">Pouches %</th>
+                                <th style="text-align: right; display: none;" id="repairHeader">Total Qty Repair</th>
+                                <th style="text-align: right; display: none;" id="repairPercentHeader">Repair %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr class="no-data">
+                                <td colspan="5">No data to display</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>📈 Distribution by Location</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <button style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;" onclick="showChart('pouches')">Qty Pouches</button>
+                    <button style="padding: 8px 15px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;" id="repairChartBtn" onclick="showChart('repair')" style="display: none;">Qty Repairs</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-section" id="buttonSection" style="display: none;">
+            <button class="export-btn" onclick="exportToCSV()">💾 Export Results to CSV</button>
+            <button class="print-btn" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <div class="empty-state-icon">🗃</div>
+            <p>© Derek Reid 2026</p>
+        </div>
+    </div>
+
+    <script>
+        let allData = null;
+        let locationData = null;
+        let chartInstance = null;
+        let currentFilterType = 'none';
+        let availableMonths = new Set();
+        let showRepairColumn = false;
+        let currentChartType = 'pouches';
+        let selectedLocations = new Set();
+        let locationGroups = {}; // { groupName: [location1, location2, ...] }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileLabel = document.getElementById('fileLabel');
+            fileLabel.textContent = `File: ${file.name}`;
+            fileLabel.classList.add('success');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    allData = parseCSV(csv);
+                    
+                    if (allData.length === 0) {
+                        throw new Error('No valid data found in CSV');
+                    }
+                    
+                    document.getElementById('filterSection').classList.add('show');
+                    document.getElementById('displayOptions').classList.add('show');
+                    document.getElementById('groupingSection').classList.add('show');
+                    
+                    extractAvailableMonths();
+                    populateLocationList();
+                    analyzeData(allData);
+                } catch (error) {
+                    alert('Error reading CSV file: ' + error.message);
+                    fileLabel.textContent = 'No file selected';
+                    fileLabel.classList.remove('success');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.split('\n').filter(line => line.trim());
+            if (lines.length < 2) {
+                throw new Error('CSV file is empty or has no data');
+            }
+
+            const headerLine = lines[0];
+            const headers = headerLine.split(',').map(h => h.trim());
+            
+            let batchIdIndex = -1;
+            let locationIndex = -1;
+            let qtyIndex = -1;
+            let repairIndex = -1;
+
+            headers.forEach((header, index) => {
+                const cleanHeader = header.toLowerCase().trim();
+                if (cleanHeader === 'batchid') {
+                    batchIdIndex = index;
+                }
+                if (cleanHeader === 'location') {
+                    locationIndex = index;
+                }
+                if (cleanHeader === 'qty pouches' || cleanHeader === 'qty_pouches') {
+                    qtyIndex = index;
+                }
+                if (cleanHeader === 'qty repair' || cleanHeader === 'qty_repair') {
+                    repairIndex = index;
+                }
+            });
+
+            if (locationIndex === -1 || qtyIndex === -1) {
+                throw new Error(`CSV must contain "Location" and "Qty Pouches" columns. Found: ${headers.join(', ')}`);
+            }
+
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = parseCSVLine(line);
+                
+                if (values.length > Math.max(locationIndex, qtyIndex)) {
+                    const batchId = batchIdIndex !== -1 ? values[batchIdIndex].trim() : '';
+                    const location = values[locationIndex].trim();
+                    const qtyStr = values[qtyIndex].trim();
+                    const repairStr = repairIndex !== -1 ? values[repairIndex].trim() : '0';
+                    const qty = parseInt(qtyStr, 10);
+                    const repair = parseInt(repairStr, 10) || 0;
+
+                    if (location && !isNaN(qty) && qty > 0) {
+                        data.push({ batchId, location, qty, repair });
+                    }
+                }
+            }
+
+            return data;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+
+            result.push(current.trim());
+            return result;
+        }
+
+        function extractAvailableMonths() {
+            availableMonths.clear();
+            allData.forEach(item => {
+                if (item.batchId && item.batchId.length >= 4) {
+                    const yyyymm = item.batchId.substring(0, 4);
+                    availableMonths.add(yyyymm);
+                }
+            });
+        }
+
+        function populateLocationList() {
+            const locations = [...new Set(allData.map(item => item.location))].sort();
+            const locationList = document.getElementById('locationList');
+            locationList.innerHTML = '';
+
+            locations.forEach(location => {
+                const div = document.createElement('div');
+                div.className = 'location-item';
+                div.innerHTML = `
+                    <label>
+                        <input type="checkbox" onchange="toggleLocationSelection(this, '${location}')">
+                        <span class="location-name">${location}</span>
+                    </label>
+                `;
+                locationList.appendChild(div);
+            });
+        }
+
+        function toggleLocationSelection(checkbox, location) {
+            if (checkbox.checked) {
+                selectedLocations.add(location);
+                checkbox.closest('.location-item').classList.add('selected');
+            } else {
+                selectedLocations.delete(location);
+                checkbox.closest('.location-item').classList.remove('selected');
+            }
+        }
+
+        function createGroup() {
+            if (selectedLocations.size === 0) {
+                alert('Please select at least one location to group');
+                return;
+            }
+
+            const groupName = document.getElementById('groupName').value.trim();
+            if (!groupName) {
+                alert('Please enter a group name');
+                return;
+            }
+
+            locationGroups[groupName] = Array.from(selectedLocations);
+            
+            document.getElementById('groupName').value = '';
+            selectedLocations.clear();
+            document.querySelectorAll('.location-item').forEach(item => item.classList.remove('selected'));
+            document.querySelectorAll('.location-item input').forEach(input => input.checked = false);
+            
+            updateGroupsList();
+            analyzeData(allData);
+        }
+
+        function updateGroupsList() {
+            const groupsList = document.getElementById('groupsList');
+            const activeGroups = document.getElementById('activeGroups');
+            
+            if (Object.keys(locationGroups).length === 0) {
+                activeGroups.classList.remove('show');
+                return;
+            }
+
+            activeGroups.classList.add('show');
+            groupsList.innerHTML = Object.entries(locationGroups).map(([name, locations]) => `
+                <div class="group-badge">
+                    ${name} (${locations.length} locations)
+                    <span class="remove-group" onclick="removeGroup('${name}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        function removeGroup(groupName) {
+            delete locationGroups[groupName];
+            updateGroupsList();
+            analyzeData(allData);
+        }
+
+        function clearAllGroups() {
+            locationGroups = {};
+            updateGroupsList();
+            analyzeData(allData);
+        }
+
+        function switchFilterTab(event, tab) {
+            currentFilterType = tab;
+            
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.filter-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'none') {
+                document.getElementById('filterNone').classList.add('active');
+                clearFilters();
+            } else if (tab === '7days') {
+                document.getElementById('filter7days').classList.add('active');
+            } else if (tab === 'custom') {
+                document.getElementById('filterCustom').classList.add('active');
+            } else if (tab === 'month') {
+                document.getElementById('filterMonth').classList.add('active');
+            }
+        }
+
+        function calculateEndDate(startDateStr) {
+            const startDate = parseYYMMDD(startDateStr);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 6);
+            
+            const endDateStr = formatYYMMDD(endDate);
+            document.getElementById('endDate').value = endDateStr;
+        }
+
+        function parseYYMMDD(dateStr) {
+            if (!dateStr || dateStr.length !== 6) {
+                throw new Error('Invalid date format. Use YYMMDD');
+            }
+            
+            const yy = parseInt(dateStr.substring(0, 2), 10);
+            const mm = parseInt(dateStr.substring(2, 4), 10);
+            const dd = parseInt(dateStr.substring(4, 6), 10);
+            
+            const yyyy = yy >= 0 && yy <= 99 ? 2000 + yy : yy;
+            
+            return new Date(yyyy, mm - 1, dd);
+        }
+
+        function formatYYMMDD(date) {
+            const yy = String(date.getFullYear()).substring(2).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return yy + mm + dd;
+        }
+
+        function applyFilter7Days() {
+            const startDateStr = document.getElementById('startDate').value.trim();
+            
+            if (!startDateStr) {
+                analyzeData(allData);
+                return;
+            }
+
+            try {
+                calculateEndDate(startDateStr);
+                const endDateStr = document.getElementById('endDate').value;
+                
+                const startDate = parseYYMMDD(startDateStr);
+                const endDate = parseYYMMDD(endDateStr);
+                
+                const filteredData = allData.filter(item => {
+                    if (!item.batchId || item.batchId.length < 6) return false;
+                    
+                    const itemDateStr = item.batchId.substring(0, 6);
+                    const itemDate = parseYYMMDD(itemDateStr);
+                    
+                    return itemDate >= startDate && itemDate <= endDate;
+                });
+
+                if (filteredData.length === 0) {
+                    alert('No data found for the selected date range');
+                    document.getElementById('filterInfo7Days').style.display = 'none';
+                    return;
+                }
+
+                const filterInfo = document.getElementById('filterInfo7Days');
+                filterInfo.innerHTML = `✓ Showing data from ${formatDateForDisplay(startDate)} to ${formatDateForDisplay(endDate)} (${filteredData.length} records)`;
+                filterInfo.style.display = 'block';
+
+                analyzeData(filteredData);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function applyCustomDateRange() {
+            const startDateStr = document.getElementById('customStartDate').value.trim();
+            const endDateStr = document.getElementById('customEndDate').value.trim();
+            
+            if (!startDateStr || !endDateStr) {
+                alert('Please enter both start and end dates');
+                return;
+            }
+
+            try {
+                const startDate = parseYYMMDD(startDateStr);
+                const endDate = parseYYMMDD(endDateStr);
+                
+                if (startDate > endDate) {
+                    alert('Start date must be before end date');
+                    return;
+                }
+                
+                const filteredData = allData.filter(item => {
+                    if (!item.batchId || item.batchId.length < 6) return false;
+                    
+                    const itemDateStr = item.batchId.substring(0, 6);
+                    const itemDate = parseYYMMDD(itemDateStr);
+                    
+                    return itemDate >= startDate && itemDate <= endDate;
+                });
+
+                if (filteredData.length === 0) {
+                    alert('No data found for the selected date range');
+                    document.getElementById('filterInfoCustom').style.display = 'none';
+                    return;
+                }
+
+                const filterInfo = document.getElementById('filterInfoCustom');
+                filterInfo.innerHTML = `✓ Showing data from ${formatDateForDisplay(startDate)} to ${formatDateForDisplay(endDate)} (${filteredData.length} records)`;
+                filterInfo.style.display = 'block';
+
+                analyzeData(filteredData);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function applyFilterMonth() {
+            const mm = document.getElementById('monthSelect').value;
+
+            if (!mm) {
+                document.getElementById('filterInfoMonth').style.display = 'none';
+                document.getElementById('debugInfo').style.display = 'none';
+                analyzeData(allData);
+                return;
+            }
+
+            try {
+                const filteredData = allData.filter(item => {
+                    if (!item.batchId || item.batchId.length < 4) return false;
+                    const itemMM = item.batchId.substring(2, 4);
+                    return itemMM === mm;
+                });
+
+                if (filteredData.length === 0) {
+                    const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                                       'July', 'August', 'September', 'October', 'November', 'December'];
+                    
+                    const debugInfo = document.getElementById('debugInfo');
+                    debugInfo.innerHTML = `<strong>Debug Info:</strong><br>
+                        Looking for month: ${mm}<br>
+                        Available months: ${Array.from(availableMonths).sort().join(', ')}<br>
+                        Sample BatchIds: ${allData.slice(0, 5).map(d => d.batchId).join(', ')}`;
+                    debugInfo.style.display = 'block';
+                    
+                    alert('No data found for ' + monthNames[parseInt(mm)]);
+                    return;
+                }
+
+                const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                                   'July', 'August', 'September', 'October', 'November', 'December'];
+                
+                const filterInfo = document.getElementById('filterInfoMonth');
+                filterInfo.innerHTML = `✓ Showing data for all ${monthNames[parseInt(mm)]} entries (${filteredData.length} records)`;
+                filterInfo.style.display = 'block';
+                
+                document.getElementById('debugInfo').style.display = 'none';
+                analyzeData(filteredData);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('customStartDate').value = '';
+            document.getElementById('customEndDate').value = '';
+            document.getElementById('monthSelect').value = '';
+            document.getElementById('filterInfo7Days').style.display = 'none';
+            document.getElementById('filterInfoCustom').style.display = 'none';
+            document.getElementById('filterInfoMonth').style.display = 'none';
+            document.getElementById('debugInfo').style.display = 'none';
+            
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.filter-tab')[0].classList.add('active');
+            document.querySelectorAll('.filter-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('filterNone').classList.add('active');
+            
+            currentFilterType = 'none';
+            analyzeData(allData);
+        }
+
+        function toggleRepairColumn() {
+            showRepairColumn = document.getElementById('showRepairQty').checked;
+            document.getElementById('repairHeader').style.display = showRepairColumn ? 'table-cell' : 'none';
+            document.getElementById('repairPercentHeader').style.display = showRepairColumn ? 'table-cell' : 'none';
+            document.getElementById('repairSummary').style.display = showRepairColumn ? 'block' : 'none';
+            document.getElementById('repairChartBtn').style.display = showRepairColumn ? 'inline-block' : 'none';
+            
+            displayResults(locationData);
+        }
+
+        function formatDateForDisplay(date) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        }
+
+        function analyzeData(data) {
+            const locationTotals = {};
+            
+            // First, aggregate all locations normally
+            data.forEach(item => {
+                if (!locationTotals[item.location]) {
+                    locationTotals[item.location] = { qty: 0, repair: 0 };
+                }
+                locationTotals[item.location].qty += item.qty;
+                locationTotals[item.location].repair += item.repair;
+            });
+
+            // Then merge grouped locations
+            const groupedTotals = { ...locationTotals };
+            Object.entries(locationGroups).forEach(([groupName, locations]) => {
+                let groupQty = 0;
+                let groupRepair = 0;
+                
+                locations.forEach(location => {
+                    if (groupedTotals[location]) {
+                        groupQty += groupedTotals[location].qty;
+                        groupRepair += groupedTotals[location].repair;
+                        delete groupedTotals[location];
+                    }
+                });
+
+                if (groupQty > 0 || groupRepair > 0) {
+                    groupedTotals[groupName] = { qty: groupQty, repair: groupRepair };
+                }
+            });
+
+            const sortedLocations = Object.entries(groupedTotals)
+                .sort((a, b) => b[1].qty - a[1].qty)
+                .map(([location, totals]) => ({ location, qty: totals.qty, repair: totals.repair }));
+
+            locationData = sortedLocations;
+            displayResults(sortedLocations);
+        }
+
+        function displayResults(data) {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('contentWrapper').style.display = 'grid';
+            document.getElementById('summarySection').style.display = 'grid';
+            document.getElementById('buttonSection').style.display = 'flex';
+
+            const totalQty = data.reduce((sum, item) => sum + item.qty, 0);
+            const totalRepair = data.reduce((sum, item) => sum + item.repair, 0);
+
+            document.getElementById('locationsCount').textContent = data.length;
+            document.getElementById('totalPouches').textContent = totalQty.toLocaleString();
+            if (showRepairColumn) {
+                document.getElementById('totalRepairs').textContent = totalRepair.toLocaleString();
+            }
+
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(item => {
+                const pouchesPercentage = ((item.qty / totalQty) * 100).toFixed(2);
+                const repairPercentage = totalRepair > 0 ? ((item.repair / totalRepair) * 100).toFixed(2) : '0.00';
+                
+                const row = document.createElement('tr');
+                let rowHTML = `
+                    <td>${item.location}</td>
+                    <td class="qty-column">${item.qty.toLocaleString()}</td>
+                    <td class="percentage-column">${pouchesPercentage}%</td>
+                `;
+                
+                if (showRepairColumn) {
+                    rowHTML += `
+                        <td class="qty-column">${item.repair.toLocaleString()}</td>
+                        <td class="percentage-column">${repairPercentage}%</td>
+                    `;
+                }
+                
+                row.innerHTML = rowHTML;
+                tableBody.appendChild(row);
+            });
+
+            createPieChart(data, totalQty, totalRepair);
+        }
+
+        function createPieChart(data, totalQty, totalRepair) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#f5576c',
+                '#4facfe', '#00f2fe', '#43e97b', '#fa709a',
+                '#fee140', '#30cfd0', '#a8edea', '#fed6e3',
+                '#ff9a56', '#ff6b6b', '#4ecdc4', '#ffe66d'
+            ];
+
+            const labels = data.map(item => item.location);
+            const backgroundColors = colors.slice(0, data.length);
+
+            let values, title;
+            if (currentChartType === 'pouches') {
+                values = data.map(item => item.qty);
+                title = 'Qty Pouches Distribution';
+            } else {
+                values = data.map(item => item.repair);
+                title = 'Qty Repair Distribution';
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: backgroundColors,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = currentChartType === 'pouches' ? totalQty : totalRepair;
+                                    const percentage = ((value / total) * 100).toFixed(2);
+                                    return `${value.toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showChart(type) {
+            currentChartType = type;
+            const totalQty = locationData.reduce((sum, item) => sum + item.qty, 0);
+            const totalRepair = locationData.reduce((sum, item) => sum + item.repair, 0);
+            createPieChart(locationData, totalQty, totalRepair);
+        }
+
+        function exportToCSV() {
+            if (!locationData) {
+                alert('No data to export');
+                return;
+            }
+
+            const totalQty = locationData.reduce((sum, item) => sum + item.qty, 0);
+            const totalRepair = locationData.reduce((sum, item) => sum + item.repair, 0);
+            
+            let csv = 'Location / Group,Total Qty Pouches,Pouches Percentage (%)';
+            if (showRepairColumn) {
+                csv += ',Total Qty Repair,Repair Percentage (%)';
+            }
+            csv += '\n';
+
+            locationData.forEach(item => {
+                const pouchesPercentage = ((item.qty / totalQty) * 100).toFixed(2);
+                const repairPercentage = totalRepair > 0 ? ((item.repair / totalRepair) * 100).toFixed(2) : '0.00';
+                
+                csv += `"${item.location}",${item.qty},${pouchesPercentage}`;
+                if (showRepairColumn) {
+                    csv += `,${item.repair},${repairPercentage}`;
+                }
+                csv += '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'location_analysis.csv');
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
