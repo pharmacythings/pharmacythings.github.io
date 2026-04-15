@@ -2,23 +2,64 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Pouch Label Repair System</title>
+<title>Pharmacy Label System</title>
 
 <style>
 
-/* ========================= */
-/* UI */
-/* ========================= */
+/* ===================================================== */
+/* BASE LAYOUT */
+/* ===================================================== */
 
 body {
+    margin: 0;
     font-family: Arial, sans-serif;
-    margin: 20px;
 }
+
+/* ===================================================== */
+/* BLURRED PAGE BACKGROUND (SCREEN ONLY) */
+/* ===================================================== */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background-image: url("sink.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    filter: blur(12px);
+    transform: scale(1.1);
+
+    z-index: -2;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background: rgba(255, 255, 255, 0.35);
+
+    z-index: -1;
+}
+
+/* ensure UI above background */
+.group, .controls {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===================================================== */
+/* UI (INPUT SIDE) */
+/* ===================================================== */
 
 .group {
     border: 1px solid #ccc;
     padding: 12px;
-    margin-bottom: 15px;
+    margin: 15px;
+    background: white;
 }
 
 input {
@@ -43,20 +84,20 @@ th, td {
 
 button {
     padding: 10px 14px;
-    margin-top: 10px;
+    margin: 10px 5px;
     cursor: pointer;
 }
 
-/* ========================= */
-/* LABEL PRINT STYLE */
-/* ========================= */
+/* ===================================================== */
+/* PRINT LABEL STYLE (7cm x 3.5cm) */
+/* ===================================================== */
 
 @page {
     size: 7cm 3.5cm;
     margin: 0;
 }
 
-.print-label {
+.label {
     width: 7cm;
     height: 3.5cm;
     padding: 2mm;
@@ -68,6 +109,8 @@ button {
 
     font-size: 8pt;
     page-break-after: always;
+
+    background: white;
 }
 
 .header {
@@ -102,9 +145,24 @@ button {
     padding-top: 1mm;
 }
 
+/* ===================================================== */
+/* PRINT RULES */
+/* ===================================================== */
+
 @media print {
-    body { margin: 0; }
-    .controls { display: none; }
+
+    body::before,
+    body::after {
+        display: none !important;
+    }
+
+    body {
+        background: white !important;
+    }
+
+    .group, .controls {
+        display: none !important;
+    }
 }
 
 </style>
@@ -113,19 +171,17 @@ button {
 <body>
 
 <div class="controls">
-
-<button onclick="addGroup()">+ Add Pouch</button>
-<button onclick="generateAndPrint()">🖨 Generate & Print Labels</button>
-
+    <button onclick="addGroup()">+ Add Patient Group</button>
+    <button onclick="generateAndPrint()">🖨 Generate & Print Labels</button>
 </div>
 
 <div id="groups"></div>
 
 <script>
 
-/* ========================= */
-/* DATA */
-/* ========================= */
+/* ===================================================== */
+/* SUGGESTIONS */
+/* ===================================================== */
 
 const PATIENTS = [
     "Smith, John",
@@ -594,17 +650,15 @@ const DRUGS = [
 
 ];
 
+
 const TIMES = ["Morning","Breakfast","Lunch","Tea","Dinner","Night"];
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
-/* ========================= */
-/* BUILD UI */
-/* ========================= */
-
+/* ===================================================== */
+/* BUILD GROUP */
+/* ===================================================== */
 
 function addGroup() {
-
-    const uid = Math.random().toString(36).substr(2, 9);
 
     const div = document.createElement("div");
     div.className = "group";
@@ -612,20 +666,23 @@ function addGroup() {
     div.innerHTML = `
 
         <label>Time</label>
-        <input list="times_${uid}">
-        <datalist id="times_${uid}">
+        <input list="times">
+
+        <datalist id="times">
             ${TIMES.map(t=>`<option value="${t}">`).join("")}
         </datalist>
 
         <label>Day</label>
-        <input list="days_${uid}">
-        <datalist id="days_${uid}">
+        <input list="days">
+
+        <datalist id="days">
             ${DAYS.map(d=>`<option value="${d}">`).join("")}
         </datalist>
 
         <label>Patient (Surname, Forename)</label>
-        <input list="patients_${uid}">
-        <datalist id="patients_${uid}">
+        <input list="patients">
+
+        <datalist id="patients">
             ${PATIENTS.map(p=>`<option value="${p}">`).join("")}
         </datalist>
 
@@ -645,11 +702,18 @@ function addGroup() {
 
     document.getElementById("groups").appendChild(div);
 }
+
+/* ===================================================== */
+/* ADD DRUG */
+/* ===================================================== */
+
 function addDrug(btn) {
 
-    const tbody = btn.parentElement.querySelector("tbody");
+    const tbody =
+    btn.parentElement.querySelector("tbody");
 
-    const row = document.createElement("tr");
+    const row =
+    document.createElement("tr");
 
     row.innerHTML = `
         <td><input placeholder="1"></td>
@@ -659,21 +723,24 @@ function addDrug(btn) {
     tbody.appendChild(row);
 }
 
+/* global drug list */
 document.body.insertAdjacentHTML("beforeend", `
 <datalist id="drugList">
 ${DRUGS.map(d=>`<option value="${d}">`).join("")}
 </datalist>
 `);
 
-/* ========================= */
-/* ONE CLICK GENERATE + PRINT */
-/* ========================= */
+/* ===================================================== */
+/* ONE CLICK PRINT */
+/* ===================================================== */
 
 function generateAndPrint() {
 
-    const groups = document.querySelectorAll(".group");
+    const groups =
+    document.querySelectorAll(".group");
 
-    let win = window.open("", "_blank");
+    let win =
+    window.open("", "_blank");
 
     let html = `
     <html>
@@ -681,53 +748,65 @@ function generateAndPrint() {
     <title>Print Labels</title>
 
     <style>
-    @page { size: 7cm 3.5cm; margin: 0; }
 
-    body { margin:0; font-family: Arial; }
+    @page {
+        size: 7cm 3.5cm;
+        margin: 0;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial;
+    }
 
     .label {
-        width:7cm;
-        height:3.5cm;
-        padding:2mm;
-        box-sizing:border-box;
-        page-break-after:always;
-        display:flex;
-        flex-direction:column;
-        justify-content:space-between;
-        font-size:8pt;
+        width: 7cm;
+        height: 3.5cm;
+        padding: 2mm;
+        box-sizing: border-box;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        font-size: 8pt;
+        page-break-after: always;
+
+        background: white;
     }
 
     .header {
-        display:flex;
-        justify-content:space-between;
-        font-size:14px;
-        font-weight:bold;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: bold;
     }
 
     .patient {
-        font-size:14px;
-        font-weight:bold;
+        font-size: 14px;
+        font-weight: bold;
     }
 
     .med {
-        display:grid;
-        grid-template-columns:6mm 1fr;
-        column-gap:2mm;
+        display: grid;
+        grid-template-columns: 6mm 1fr;
+        column-gap: 2mm;
     }
 
     .dose {
-        text-align:right;
-        font-weight:bold;
-        font-family:monospace;
+        text-align: right;
+        font-weight: bold;
+        font-family: monospace;
     }
 
     .footer {
-        display:flex;
-        justify-content:space-between;
-        font-size:7pt;
-        border-top:1px solid #999;
-        padding-top:1mm;
+        display: flex;
+        justify-content: space-between;
+        font-size: 7pt;
+        border-top: 1px solid #999;
+        padding-top: 1mm;
     }
+
     </style>
 
     </head>
@@ -772,18 +851,16 @@ function generateAndPrint() {
                     ${surname}, ${forename}
                 </div>
 
-                <div>
                 ${drugs.map(d => `
                     <div class="med">
                         <div class="dose">${d.dose}</div>
                         <div>${d.drug}</div>
                     </div>
                 `).join("")}
-                </div>
             </div>
 
             <div class="footer">
-                <div>Prepared by Amiry & Gilbride HUB</div>
+                <div>Prepared by Pharmacy System</div>
                 <div>${footer}</div>
             </div>
 
@@ -798,7 +875,8 @@ function generateAndPrint() {
             window.print();
         }
     <\/script>
-    </body></html>
+    </body>
+    </html>
     `;
 
     win.document.write(html);
