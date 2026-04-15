@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pouch Label Repair System</title>
+
+<style>
+
+/* ========================= */
+/* UI */
+/* ========================= */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.group {
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 6px;
+    margin: 4px 0;
+    box-sizing: border-box;
+    font-size: 12px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    font-size: 12px;
+}
+
+button {
+    padding: 10px 14px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+/* ========================= */
+/* LABEL PRINT STYLE */
+/* ========================= */
+
+@page {
+    size: 7cm 3.5cm;
+    margin: 0;
+}
+
+.print-label {
+    width: 7cm;
+    height: 3.5cm;
+    padding: 2mm;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    font-size: 8pt;
+    page-break-after: always;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.patient {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.med {
+    display: grid;
+    grid-template-columns: 6mm 1fr;
+    column-gap: 2mm;
+}
+
+.dose {
+    text-align: right;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7pt;
+    border-top: 1px solid #999;
+    padding-top: 1mm;
+}
+
+@media print {
+    body { margin: 0; }
+    .controls { display: none; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+
+<button onclick="addGroup()">+ Add Patient Group</button>
+<button onclick="generateAndPrint()">🖨 Generate & Print Labels</button>
+
+</div>
+
+<div id="groups"></div>
+
+<script>
+
+/* ========================= */
+/* DATA */
+/* ========================= */
+
+const PATIENTS = [
+    "Smith, John",
+    "Brown, Sarah",
+    "Jones, Michael",
+    "Taylor, Emily"
+];
+
+const DRUGS = [
+    "Medicine",
+    "Acamprosate 333mg gastro-resistant Tablets",
+    "Accrete D3 Tablets",
+    "Adcal-d3 750mg/200unit Caplets",
+    "Alendronic Acid 70mg Tablets",
+    "Alfacalcidol 1microgram Caps",
+    "Allopurinol 100mg Tablets",
+    "Allopurinol 300mg Tablets",
+    "Alogliptin 25mg Tablets",
+    "Alverine 60mg Caps",
+    "Amiodarone 100mg Tablets",
+    "Amiodarone 200mg Tablets",
+    "Amisulpride 100mg Tablets",
+    "Amisulpride 200mg Tablets",
+    "Amitriptyline 10mg Tablets",
+    "Amitriptyline 25mg Tablets",
+    "Amitriptyline 50mg Tablets",
+    "Amlodipine 10mg Tablets",
+    "Amlodipine 10mg Tablets",
+    "Amlodipine 10mg Tablets",
+    "Amlodipine 5mg Tablets",
+    "Amlodipine 5mg Tablets",
+    "Apixaban 2.5mg Tablets",
+    "Apixaban 5mg Tablets",
+    "Aripiprazole 10mg Tablets",
+    "Aripiprazole 15mg Tablets",
+    "Aripiprazole 5mg Tablets",
+    "Aspirin 75mg Dispersible Tablets",
+    "Aspirin 75mg Gastro-resistant Tablets",
+    "Aspirin 75mg Gastro-resistant Tablets",
+    "Aspirin 75mg Tablets",
+    "Atenolol 100mg Tablets",
+    "Atenolol 25mg Tablets",
+    "Atenolol 50mg Tablets",
+    "Atorvastatin 10mg Tablets",
+    "Atorvastatin 20mg Tablets",
+    "Atorvastatin 40mg Tablets",
+    "Atorvastatin 40mg Tablets",
+    "Atorvastatin 40mg Tablets",
+    "Atorvastatin 80mg Tablets",
+    "Azathioprine 25mg Tablets",
+    "Azathioprine 50mg Tablets",
+    "Baclofen 10mg Tablets",
+    "Bendroflumethiazide 2.5mg Tablets",
+    "Betahistine 16mg Tablets",
+    "Betahistine 8mg Tablets",
+    "Bisacodyl 5mg Gastro-resistant Tablets",
+    "Bisoprolol 1.25mg Tablets",
+    "Bisoprolol 10mg Tablets",
+    "Bisoprolol 2.5mg Tablets",
+    "Bisoprolol 3.75mg Tablets",
+    "Bisoprolol 5mg Tablets",
+    "Bisoprolol 7.5mg Tablets",
+    "Brivaracetam 100mg Tablets",
+    "Bumetanide 1mg Tablets",
+    "Buspirone 10mg Tablets",
+    "Buspirone 5mg Tablets",
+    "Calcichew D3 Chewable Tablets",
+    "Calcichew D3 Forte Chewable Tablets",
+    "Canagliflozin 100mg tablets",
+    "Canagliflozin 300mg Tablets",
+    "Candesartan 16mg Tablets",
+    "Candesartan 2mg Tablets",
+    "Candesartan 32mg Tablets",
+    "Candesartan 4mg Tablets",
+    "Candesartan 8mg Tablets",
+    "Carbamazepine 200mg Modified-release Tablets",
+    "Carbamazepine 200mg Tablets",
+    "Carbamazepine 100mg Tablets",
+    "Carbamazepine 400mg Modified-release Tablets",
+    "Carbocisteine 375mg Caps",
+    "Carvedilol 12.5mg Tablets",
+    "Carvedilol 25mg Tablets",
+    "Carvedilol 3.125mg Tablets",
+    "Carvedilol 6.25mg Tablets",
+    "Celecoxib 100mg Caps",
+    "Celecoxib 200mg Caps",
+    "Cetirizine 10mg Tablets",
+    "Chlorphenamine 4mg Tablets",
+    "Chlorpromazine 100mg Tablets",
+    "Chlorpromazine 25mg Tablets",
+    "Chlorpromazine 50mg Tablets",
+    "Cinnarizine 15mg Tablets",
+    "Citalopram 10mg Tablets",
+    "Citalopram 20mg Tablets",
+    "Citalopram 40mg Tablets",
+    "Clobazam 10mg Tablets",
+    "Clonazepam 500microgram Tablets",
+    "Clonidine 25microgram Tablets",
+    "Clopidogrel 75mg Tablets",
+    "Clopidogrel 75mg Tablets",
+    "Co-beneldopa 12.5mg/50mg Caps",
+    "Co-careldopa 12.5mg/50mg Tablets",
+    "Co-careldopa 25mg/100mg Tablets",
+    "Co-codamol 15mg/500mg Tablets",
+    "Co-codamol 30mg/500mg caplets",
+    "Co-codamol 30mg/500mg Caps",
+    "Co-codamol 30mg/500mg Tablets",
+    "Co-codamol 8mg/500mg Tablets",
+    "Co-codamol 8mg/500mg Tablets",
+    "Co-codamol 8mg/500mg Tablets",
+    "Co-dydramol 10mg/500mg Tablets",
+    "Co-dydramol 30mg/500mg tablets",
+    "Codeine 15mg Tablets",
+    "Codeine 30mg Tablets",
+    "Colecalciferol 1000unit caps",
+    "Colecalciferol 800unit Caps",
+    "Colecalciferol 800unit Tablets",
+    "Cyanocobalamin 100microgram Tablets",
+    "Cyanocobalamin 50microgram Tablets",
+    "Cyclizine 50mg Tablets",
+    "Dapagliflozin 10mg Tablets",
+    "Dapagliflozin 5mg Tablets",
+    "Desloratadine 5mg Tablets",
+    "Desmopressin 200microgram tablets",
+    "Desogestrel 75microgram tablets",
+    "Dhc Continus 60mg Tablets",
+    "Diazepam 2mg Tablets",
+    "Diazepam 5mg Tablets",
+    "Digoxin 125microgram Tablets",
+    "Digoxin 250microgram Tablets",
+    "Digoxin 62.5microgram Tablets",
+    "Dihydrocodeine 30mg Tablets",
+    "Dihydrocodeine 30mg Tablets",
+    "Dihydrocodeine 30mg Tablets",
+    "Dihydrocodeine 60mg Modified-release Tablets",
+    "Dihydrocodeine 60mg Modified-release Tablets",
+    "Dihydrocodeine 90mg Modified-release Tablets",
+    "Dihydrocodeine 120mg Modified-release Tablets",
+    "Docusate 100mg Caps",
+    "Domperidone 10mg Tablets",
+    "Donepezil 10mg Tablets",
+    "Donepezil 5mg Tablets",
+    "Dosulepin 25mg caps",
+    "Dosulepin 75mg tablets",
+    "Doxazosin 1mg Tablets",
+    "Doxazosin 2mg Tablets",
+    "Doxazosin 4mg Tablets",
+    "Doxazosin 8mg Tablets",
+    "Duloxetine 30mg Gastro-resistant Caps",
+    "Duloxetine 40mg Gastro-resistant Caps",
+    "Duloxetine 60mg Gastro-resistant Caps",
+    "Duloxetine 90mg Gastro-resistant Caps",
+    "Edoxaban 30mg Tablets",
+    "Edoxaban 60mg Tablets",
+    "Empagliflozin 10mg Tablets",
+    "Empagliflozin 25mg Tablets",
+    "Enalapril 10mg Tablets",
+    "Enalapril 2.5mg Tablets",
+    "Enalapril 20mg Tablets",
+    "Enalapril 5mg Tablets",
+    "Eplerenone 25mg Tablets",
+    "Eplerenone 50mg Tablets",
+    "Erythromycin 250mg gastro-resistant tablets",
+    "Escitalopram 10mg Tablets",
+    "Esomeprazole 20mg Gastro-resistant Caps",
+    "Esomeprazole 20mg Gastro-resistant Tablets",
+    "Esomeprazole 40mg Gastro-resistant Caps",
+    "Esomeprazole 40mg Gastro-resistant Tablets",
+    "Etodolac 600mg Modified-release Tablets",
+    "Etoricoxib 30mg tablets",
+    "Etoricoxib 60mg tablets",
+    "Etoricoxib 90mg tablets",
+    "Exemestane 25mg Tablets",
+    "Ezetimibe 10mg Tablets",
+    "Famotidine 20mg Tablets",
+    "Famotidine 40mg Tablets",
+    "Felodipine 10mg Modified-release Tablets",
+    "Felodipine 2.5mg modified-release tablets",
+    "Felodipine 5mg modified-release tablets",
+    "Fenofibrate micronised 200mg caps",
+    "Ferrous Fumarate 210mg Tablets",
+    "Ferrous Fumarate 322mg Tablets",
+    "Ferrous Sulfate 200mg Tablets",
+    "Fesoterodine 8mg modified-release tablets",
+    "Fexofenadine 120mg Tablets",
+    "Fexofenadine 180mg Tablets",
+    "Finasteride 5mg Tablets",
+    "Flecainide 50mg Tablets",
+    "Fludrocortisone 100microgram Tablets",
+    "Fluoxetine 20mg Caps",
+    "Fluoxetine 40mg caps",
+    "Folic Acid 5mg Tablets",
+    "Folic Acid 5mg Tablets",
+    "Forceval Caps",
+    "Fultium-D3 800unit caps",
+    "Fultium-D3 800unit caps",
+    "Furosemide 20mg Tablets",
+    "Furosemide 40mg Tablets",
+    "Gabapentin 100mg Caps",
+    "Gabapentin 300mg Caps",
+    "Gabapentin 400mg Caps",
+    "Gabapentin 600mg Tablets",
+    "Gliclazide 30mg Modified-release Tablets",
+    "Gliclazide 40mg Tablets",
+    "Gliclazide 80mg Tablets",
+    "Glucophage SR 1000mg tablets",
+    "Haloperidol 500microgram tablets",
+    "Hiprex 1g tablets",
+    "Hydrocortisone 10mg Tablets",
+    "Hydroxychloroquine 200mg Tablets",
+    "Hydroxyzine 10mg tablets",
+    "Hydroxyzine 25mg tablets",
+    "Hyoscine Butylbromide 10mg Tablets",
+    "Hyoscine hydrobromide 300microgram tablets",
+    "Ibuprofen 200mg tablets",
+    "Ibuprofen 400mg Tablets",
+    "Ibuprofen 600mg tablets",
+    "Imipramine 10mg Tablets",
+    "Imipramine 25mg Tablets",
+    "Indapamide 2.5mg Tablets",
+    "Indometacin 50mg Caps",
+    "InVita D3 400unit caps",
+    "InVita D3 800unit caps",
+    "Irbesartan 150mg Tablets",
+    "Irbesartan 300mg Tablets",
+    "Irbesartan 75mg Tablets",
+    "Isosorbide Mononitrate 10mg Tablets",
+    "Isosorbide Mononitrate 20mg Tablets",
+    "Isosorbide Mononitrate 25mg Modified-release Caps",
+    "Isosorbide Mononitrate 40mg Tablets",
+    "Isosorbide Mononitrate 60mg Modified-release Tablets",
+    "Ivabradine 5mg Tablets",
+    "Ivabradine 7.5mg Tablets",
+    "Lacosamide 100mg Tablets",
+    "Lamotrigine 100mg Tablets",
+    "Lamotrigine 100mg Tablets",
+    "Lamotrigine 200mg Tablets",
+    "Lamotrigine 25mg Tablets",
+    "Lamotrigine 50mg Tablets",
+    "Lansoprazole 15mg Gastro-resistant Caps",
+    "Lansoprazole 30mg Gastro-resistant Caps",
+    "Lercanidipine 10mg Tablets",
+    "Lercanidipine 20mg Tablets",
+    "Letrozole 2.5mg Tablets",
+    "Letrozole 2.5mg Tablets",
+    "Levetiracetam 1g Tablets",
+    "Levetiracetam 250mg Tablets",
+    "Levetiracetam 500mg Tablets",
+    "Levetiracetam 750mg Tablets",
+    "Levothyroxine Sodium 100microgram Tablets",
+    "Levothyroxine Sodium 100microgram Tablets",
+    "Levothyroxine Sodium 25microgram Tablets",
+    "Levothyroxine Sodium 50microgram Tablets",
+    "Levothyroxine Sodium 75microgram Tablets",
+    "Linagliptin 5mg Tablets",
+    "Lisinopril 10mg Tablets",
+    "Lisinopril 2.5mg tablets",
+    "Lisinopril 20mg Tablets",
+    "Lisinopril 5mg Tablets",
+    "Lithium Carbonate 200mg Modified-release Tablets",
+    "Lithium Carbonate 400mg Modified-release Tablets",
+    "Lofepramine 70mg Tablets",
+    "Loperamide 2mg Caps",
+    "Loperamide 2mg Caps",
+    "Loratadine 10mg Tablets",
+    "Lorazepam 1mg tablets",
+    "Losartan 100mg Tablets",
+    "Losartan 12.5mg Tablets",
+    "Losartan 25mg Tablets",
+    "Losartan 50mg Tablets",
+    "Lustral 100mg tablets",
+    "Lymecycline 408mg Caps",
+    "Lymecycline 408mg Caps",
+    "Mebeverine 135mg Tablets",
+    "Mebeverine 200mg Modified-release Caps",
+    "Melatonin 2mg Modified-release Tablets",
+    "Melatonin 3mg tablets",
+    "Meloxicam 15mg tablets",
+    "Meloxicam 7.5mg tablets",
+    "Memantine 10mg Tablets",
+    "Memantine 20mg Tablets",
+    "Metformin 1g Modified-release Tablets",
+    "Metformin 1g Modified-release Tablets",
+    "Metformin 1g Modified-release Tablets",
+    "Metformin 500mg Modified-release Tablets",
+    "Metformin 500mg Tablets",
+    "Metformin 500mg Tablets",
+    "Metformin 850mg Tablets",
+    "Methenamine Hippurate 1g Tablets",
+    "Metoclopramide 10mg Tablets",
+    "Mezavant XL 1200mg tablets",
+    "Mirabegron 25mg Modified-release Tablets",
+    "Mirabegron 50mg Modified-release Tablets",
+    "Mirtazapine 15mg Tablets",
+    "Mirtazapine 30mg Tablets",
+    "Mirtazapine 45mg Tablets",
+    "Montelukast 10mg Tablets",
+    "Moxonidine 200microgram tablets",
+    "Mycophenolate mofetil 250mg caps",
+    "Mycophenolate mofetil 500mg tablets",
+    "Naftidrofuryl 100mg Caps",
+    "Naproxen 250mg Tablets",
+    "Naproxen 500mg Tablets",
+    "Nebivolol 5mg tablets",
+    "Nefopam 30mg Tablets",
+    "Nicorandil 10mg Tablets",
+    "Nicorandil 20mg Tablets",
+    "Nifedipress modified-release 10 tablets",
+    "Nifedipress modified-release 20 tablets",
+    "Nitrazepam 5mg Tablets",
+    "Nortriptyline 10mg Tablets",
+    "Nortriptyline 25mg Tablets",
+    "Olanzapine 10mg Tablets",
+    "Olanzapine 15mg Tablets",
+    "Olanzapine 2.5mg Tablets",
+    "Olanzapine 20mg Tablets",
+    "Olanzapine 5mg Tablets",
+    "Olanzapine 7.5mg Tablets",
+    "Omeprazole 10mg Gastro-resistant Caps",
+    "Omeprazole 20mg Gastro-resistant Caps",
+    "Omeprazole 20mg Gastro-resistant Caps",
+    "Omeprazole 40mg Gastro-resistant Caps",
+    "Oxcarbazepine 300mg Tablets",
+    "Oxcarbazepine 600mg Tablets",
+    "Oxybutynin 2.5mg Tablets",
+    "Oxybutynin 5mg Tablets",
+    "Pantoprazole 20mg gastro-resistant tablets",
+    "Pantoprazole 40mg Gastro-resistant Tablets",
+    "Paracetamol 500mg / Dihydrocodeine 20mg Tablets",
+    "Paracetamol 500mg / Dihydrocodeine 30mg Tablets",
+    "Paracetamol 500mg Caps",
+    "Paracetamol 500mg Caps",
+    "Paracetamol 500mg Tablets",
+    "Paracetamol 500mg Tablets",
+    "Paroxetine 20mg Tablets",
+    "Paroxetine 30mg Tablets",
+    "Peppermint Oil 0.2ml Gastro-resistant Caps",
+    "Perindopril Erbumine 2mg Tablets",
+    "Perindopril Erbumine 4mg Tablets",
+    "Perindopril Erbumine 8mg Tablets",
+    "Phenoxymethylpenicillin 250mg Tablets",
+    "Phenytoin Sodium 100mg Caps",
+    "Phenytoin Sodium 50mg Caps",
+    "Pioglitazone 15mg Tablets",
+    "Pioglitazone 30mg Tablets",
+    "Pioglitazone 45mg Tablets",
+    "Pizotifen 1.5mg Tablets",
+    "Pizotifen 500microgram Tablets",
+    "Pramipexole 88microgram tablets",
+    "Pravastatin 10mg Tablets",
+    "Pravastatin 20mg Tablets",
+    "Pravastatin 40mg Tablets",
+    "Prazosin 500microgram Tablets",
+    "Prednisolone 1mg Tablets",
+    "Prednisolone 5mg Tablets",
+    "Prednisolone 2.5mg gastro-resistant tablets",
+    "Prednisolone 5mg gastro-resistant tablets",
+    "Pregabalin 100mg Caps",
+    "Pregabalin 150mg Caps",
+    "Pregabalin 200mg Caps",
+    "Pregabalin 225mg Caps",
+    "Pregabalin 25mg Caps",
+    "Pregabalin 300mg Caps",
+    "Pregabalin 50mg Caps",
+    "Pregabalin 75mg Caps",
+    "Prochlorperazine 5mg Tablets",
+    "Prochlorperazine 5mg Tablets",
+    "Procyclidine 5mg Tablets",
+    "Promethazine Hydrochloride 25mg Tablets",
+    "Propranolol 10mg Tablets",
+    "Propranolol 40mg Tablets",
+    "Propranolol 80mg Modified-release Caps",
+    "Propranolol 80mg Tablets",
+    "Propranolol 160mg modified-release caps",
+    "Prucalopride 2mg tablets",
+    "Pyridoxine 50mg tablets",
+    "Quetiapine 100mg Tablets",
+    "Quetiapine 150mg Tablets",
+    "Quetiapine 200mg Tablets",
+    "Quetiapine 25mg Tablets",
+    "Quetiapine 300mg Tablets",
+    "Quinine Sulfate 200mg Tablets",
+    "Quinine Sulfate 300mg Tablets",
+    "Ramipril 1.25mg Caps",
+    "Ramipril 10mg Caps",
+    "Ramipril 10mg tablets",
+    "Ramipril 2.5mg Caps",
+    "Ramipril 5mg Caps",
+    "Regurin XL 60mg caps",
+    "Remedeine Tablets",
+    "Risedronate sodium 35mg tablets",
+    "Risperidone 1mg Tablets",
+    "Risperidone 2mg Tablets",
+    "Risperidone 3mg Tablets",
+    "Risperidone 500microgram tablets",
+    "Rivaroxaban 2.5mg tablets",
+    "Rivaroxaban 20mg Tablets",
+    "Ropinirole 1mg Tablets",
+    "Rosuvastatin 10mg Tablets",
+    "Rosuvastatin 20mg Tablets",
+    "Rosuvastatin 5mg Tablets",
+    "Securon SR 240mg tablets",
+    "Senna 7.5mg Tablets",
+    "Sertraline 100mg Tablets",
+    "Sertraline 100mg Tablets",
+    "Sertraline 100mg Tablets",
+    "Sertraline 50mg Tablets",
+    "Sertraline 50mg Tablets",
+    "Sertraline 50mg Tablets",
+    "Simvastatin 10mg Tablets",
+    "Simvastatin 20mg Tablets",
+    "Simvastatin 40mg Tablets",
+    "Sitagliptin 100mg Tablets",
+    "Sitagliptin 25mg Tablets",
+    "Sitagliptin 50mg Tablets",
+    "Sodium Bicarbonate 500mg Caps",
+    "Solifenacin 10mg Tablets",
+    "Solifenacin 5mg Tablets",
+    "Spironolactone 100mg Tablets",
+    "Spironolactone 25mg Tablets",
+    "Spironolactone 50mg Tablets",
+    "Stexerol-D3 1000unit tablets",
+    "Sulfasalazine 500mg Gastro-resistant Tablets",
+    "Tamoxifen 20mg Tablets",
+    "Tamsulosin 400microgram Modified-release Caps",
+    "Tamsulosin 400microgram Modified-release Caps",
+    "Thiamine 100mg Tablets",
+    "Thiamine 100mg Tablets",
+    "Thiamine 50mg Tablets",
+    "Thiamine 50mg Tablets",
+    "Tildiem La 200 Caps",
+    "Tildiem La 300 Caps",
+    "Tildiem Retard 120mg Tablets",
+    "Tolterodine 1mg Tablets",
+    "Tolterodine 2mg Tablets",
+    "Tolterodine 4mg Modified-release Caps",
+    "Topiramate 100mg Tablets",
+    "Topiramate 200mg Tablets",
+    "Topiramate 25mg Tablets",
+    "Topiramate 50mg Tablets",
+    "Tramadol 50mg Caps",
+    "Tramadol 50mg Caps",
+    "Trazodone 100mg Caps",
+    "Trazodone 150mg Tablets",
+    "Trazodone 50mg Caps",
+    "Trazodone 50mg Caps",
+    "Trihexyphenidyl 2mg Tablets",
+    "Trihexyphenidyl 5mg Tablets",
+    "Trimethoprim 100mg Tablets",
+    "Uniphyllin Continus 200mg tablets",
+    "Uniphyllin Continus 300mg Tablets",
+    "Uniphyllin Continus 400mg Tablets",
+    "Venlafaxine 150mg Modified-release Caps",
+    "Venlafaxine 150mg Modified-release Tablets",
+    "Venlafaxine 225mg Modified-release Tablets",
+    "Venlafaxine 37.5mg Tablets",
+    "Venlafaxine 75mg Modified-release Caps",
+    "Venlafaxine 75mg Modified-release Tablets",
+    "Venlafaxine 75mg Tablets",
+    "Venlafaxine 225mg modified-release caps",
+    "Verapamil 120mg Tablets",
+    "Zolpidem 10mg Tablets",
+    "Zolpidem 5mg Tablets",
+    "Zopiclone 3.75mg Tablets",
+    "Zopiclone 7.5mg Tablets"
+
+];
+
+const TIMES = ["Morning","Breakfast","Lunch","Tea","Dinner","Night"];
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+/* ========================= */
+/* BUILD UI */
+/* ========================= */
+
+
+function addGroup() {
+
+    const uid = Math.random().toString(36).substr(2, 9);
+
+    const div = document.createElement("div");
+    div.className = "group";
+
+    div.innerHTML = `
+
+        <label>Time</label>
+        <input list="times_${uid}">
+        <datalist id="times_${uid}">
+            ${TIMES.map(t=>`<option value="${t}">`).join("")}
+        </datalist>
+
+        <label>Day</label>
+        <input list="days_${uid}">
+        <datalist id="days_${uid}">
+            ${DAYS.map(d=>`<option value="${d}">`).join("")}
+        </datalist>
+
+        <label>Patient (Surname, Forename)</label>
+        <input list="patients_${uid}">
+        <datalist id="patients_${uid}">
+            ${PATIENTS.map(p=>`<option value="${p}">`).join("")}
+        </datalist>
+
+        <label>Footer</label>
+        <input class="footer" placeholder="1/116">
+
+        <button onclick="addDrug(this)">+ Add Drug</button>
+
+        <table>
+            <thead>
+                <tr><th>Dose</th><th>Drug</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+    `;
+
+    document.getElementById("groups").appendChild(div);
+}
+function addDrug(btn) {
+
+    const tbody = btn.parentElement.querySelector("tbody");
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+        <td><input placeholder="1"></td>
+        <td><input list="drugList"></td>
+    `;
+
+    tbody.appendChild(row);
+}
+
+document.body.insertAdjacentHTML("beforeend", `
+<datalist id="drugList">
+${DRUGS.map(d=>`<option value="${d}">`).join("")}
+</datalist>
+`);
+
+/* ========================= */
+/* ONE CLICK GENERATE + PRINT */
+/* ========================= */
+
+function generateAndPrint() {
+
+    const groups = document.querySelectorAll(".group");
+
+    let win = window.open("", "_blank");
+
+    let html = `
+    <html>
+    <head>
+    <title>Print Labels</title>
+
+    <style>
+    @page { size: 7cm 3.5cm; margin: 0; }
+
+    body { margin:0; font-family: Arial; }
+
+    .label {
+        width:7cm;
+        height:3.5cm;
+        padding:2mm;
+        box-sizing:border-box;
+        page-break-after:always;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+        font-size:8pt;
+    }
+
+    .header {
+        display:flex;
+        justify-content:space-between;
+        font-size:14px;
+        font-weight:bold;
+    }
+
+    .patient {
+        font-size:14px;
+        font-weight:bold;
+    }
+
+    .med {
+        display:grid;
+        grid-template-columns:6mm 1fr;
+        column-gap:2mm;
+    }
+
+    .dose {
+        text-align:right;
+        font-weight:bold;
+        font-family:monospace;
+    }
+
+    .footer {
+        display:flex;
+        justify-content:space-between;
+        font-size:7pt;
+        border-top:1px solid #999;
+        padding-top:1mm;
+    }
+    </style>
+
+    </head>
+    <body>
+    `;
+
+    groups.forEach(g => {
+
+        const inputs = g.querySelectorAll("input");
+
+        const time = inputs[0].value;
+        const day = inputs[1].value;
+
+        const patient = inputs[2].value || ",";
+        const [surname, forename] = patient.split(",");
+
+        const footer = g.querySelector(".footer").value || "";
+
+        const rows = g.querySelectorAll("tbody tr");
+
+        const drugs = [];
+
+        rows.forEach(r => {
+
+            drugs.push({
+                dose: r.querySelectorAll("input")[0].value,
+                drug: r.querySelectorAll("input")[1].value
+            });
+
+        });
+
+        html += `
+        <div class="label">
+
+            <div>
+                <div class="header">
+                    <div>${time}</div>
+                    <div>${day}</div>
+                </div>
+
+                <div class="patient">
+                    ${surname}, ${forename}
+                </div>
+
+                <div>
+                ${drugs.map(d => `
+                    <div class="med">
+                        <div class="dose">${d.dose}</div>
+                        <div>${d.drug}</div>
+                    </div>
+                `).join("")}
+                </div>
+            </div>
+
+            <div class="footer">
+                <div>Prepared by Amiry & Gilbride HUB</div>
+                <div>${footer}</div>
+            </div>
+
+        </div>
+        `;
+
+    });
+
+    html += `
+    <script>
+        window.onload = function () {
+            window.print();
+        }
+    <\/script>
+    </body></html>
+    `;
+
+    win.document.write(html);
+    win.document.close();
+
+}
+
+</script>
+
+</body>
+</html>
