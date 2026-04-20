@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML to CSV Converter - TRUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: -1;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background-color: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background-color: #e8eaff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 14px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            background-color: #f0f9ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info-text {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-convert {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-convert:hover:not(:disabled) {
+            background-color: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-convert:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-download {
+            background-color: #10b981;
+            color: white;
+            display: none;
+        }
+
+        .btn-download.show {
+            display: flex;
+        }
+
+        .btn-download:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .output-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .output-section.show {
+            display: block;
+        }
+
+        .csv-preview {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .csv-preview::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .csv-preview::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .csv-preview::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #10b981;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .option label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                min-width: 100%;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 XML to CSV Converter</h1>
+        <p class="subtitle">Convert XML files to CSV format</p>
+
+        <!-- Upload Section -->
+        <div class="section">
+            <div class="section-title">Step 1: Upload XML File</div>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Click to upload or drag and drop</div>
+                <div class="upload-subtext">XML files only</div>
+            </div>
+            <input type="file" id="fileInput" accept=".xml" />
+            <div class="file-info" id="fileInfo">
+                <div class="file-info-text">📄 <strong id="fileName"></strong> selected</div>
+            </div>
+        </div>
+
+        <!-- Options Section -->
+        <div class="section">
+            <div class="section-title">Step 2: Configure Options</div>
+            <div class="options-grid">
+                <div class="option">
+                    <input type="checkbox" id="includeHeaders" checked>
+                    <label for="includeHeaders">Include headers</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="removeEmpty" checked>
+                    <label for="removeEmpty">Remove empty rows</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="useQuotes">
+                    <label for="useQuotes">Quote all fields</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="includeSeparator">
+                    <label for="includeSeparator">Custom separator</label>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label for="separator" style="font-size: 14px; color: #333;">Field separator:</label>
+                <select id="separator" style="margin-left: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value=",">Comma (,)</option>
+                    <option value=";">Semicolon (;)</option>
+                    <option value="|">Pipe (|)</option>
+                    <option value="\t">Tab</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="section">
+            <div class="section-title">Step 3: Convert</div>
+            <div class="buttons">
+                <button class="btn-convert" id="convertBtn" disabled>🔄 Convert to CSV</button>
+                <button class="btn-clear" id="clearBtn">🗑️ Clear</button>
+                <button class="btn-download" id="downloadBtn">⬇️ Download CSV</button>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Converting XML to CSV...</p>
+        </div>
+
+        <!-- Messages -->
+        <div class="message" id="message"></div>
+
+        <!-- Output Section -->
+        <div class="output-section" id="outputSection">
+            <div class="section-title">Step 4: Preview</div>
+            <div class="csv-preview" id="csvPreview"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const convertBtn = document.getElementById('convertBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const loading = document.getElementById('loading');
+        const message = document.getElementById('message');
+        const csvPreview = document.getElementById('csvPreview');
+        const outputSection = document.getElementById('outputSection');
+
+        let xmlFile = null;
+        let csvData = null;
+        let originalFilename = null;
+
+        // File upload handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (!file.name.toLowerCase().endsWith('.xml')) {
+                showMessage('Please select a valid XML file', 'error');
+                return;
+            }
+            xmlFile = file;
+            originalFilename = file.name.replace(/\.xml$/i, '');
+            fileName.textContent = file.name;
+            fileInfo.classList.add('show');
+            convertBtn.disabled = false;
+            showMessage('', '');
+            csvData = null;
+            outputSection.classList.remove('show');
+            downloadBtn.classList.remove('show');
+        }
+
+        convertBtn.addEventListener('click', convertXmlToCsv);
+        clearBtn.addEventListener('click', clearAll);
+        downloadBtn.addEventListener('click', downloadCsv);
+
+        function convertXmlToCsv() {
+            if (!xmlFile) {
+                showMessage('Please select an XML file first', 'error');
+                return;
+            }
+
+            loading.classList.add('show');
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                try {
+                    const xmlContent = e.target.result;
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+
+                    if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                        throw new Error('Invalid XML file');
+                    }
+
+                    csvData = parseXmlToCsv(xmlDoc);
+                    loading.classList.remove('show');
+                    outputSection.classList.add('show');
+                    csvPreview.textContent = csvData;
+                    downloadBtn.classList.add('show');
+                    showMessage('✅ XML converted to CSV successfully!', 'success');
+                } catch (error) {
+                    loading.classList.remove('show');
+                    showMessage(`❌ Error: ${error.message}`, 'error');
+                }
+            };
+
+            reader.onerror = () => {
+                loading.classList.remove('show');
+                showMessage('Error reading file', 'error');
+            };
+
+            reader.readAsText(xmlFile);
+        }
+
+        function parseXmlToCsv(xmlDoc) {
+            const includeHeaders = document.getElementById('includeHeaders').checked;
+            const removeEmpty = document.getElementById('removeEmpty').checked;
+            const useQuotes = document.getElementById('useQuotes').checked;
+            const separator = document.getElementById('separator').value;
+
+            let csvContent = '';
+            const root = xmlDoc.documentElement;
+            const allRows = [];
+            const allHeaders = new Set();
+
+            // Parse AMPPS
+            const ampps = root.querySelector('AMPPS');
+            if (ampps) {
+                const ampElements = ampps.querySelectorAll('AMPP');
+                ampElements.forEach(ampp => {
+                    const row = {};
+                    ampp.querySelectorAll('*').forEach(child => {
+                        if (child.children.length === 0) {
+                            const key = child.nodeName;
+                            const value = child.textContent || '';
+                            row[key] = value;
+                            allHeaders.add(key);
+                        }
+                    });
+                    if (!removeEmpty || Object.keys(row).length > 0) {
+                        allRows.push({ section: 'AMPP', data: row });
+                    }
+                });
+            }
+
+            // Parse APPLIANCE_PACK_INFO
+            const packInfo = root.querySelector('APPLIANCE_PACK_INFO');
+            if (packInfo) {
+                const packElements = packInfo.querySelectorAll('PACK_INFO');
+                packElements.forEach(pack => {
+                    const row = {};
+                    pack.querySelectorAll('*').forEach(child => {
+                        if (child.children.length === 0) {
+                            const key = 'PACK_' + child.nodeName;
+                            const value = child.textContent || '';
+                            row[key] = value;
+                            allHeaders.add(key);
+                        }
+                    });
+                    if (!removeEmpty || Object.keys(row).length > 0) {
+                        allRows.push({ section: 'PACK_INFO', data: row });
+                    }
+                });
+            }
+
+            // Parse DRUG_PRODUCT_PRESCRIB_INFO
+            const prescInfo = root.querySelector('DRUG_PRODUCT_PRESCRIB_INFO');
+            if (prescInfo) {
+                const prescElements = prescInfo.querySelectorAll('PRESCRIB_INFO');
+                prescElements.forEach(presc => {
+                    const row = {};
+                    presc.querySelectorAll('*').forEach(child => {
+                        if (child.children.length === 0) {
+                            const key = 'PRESC_' + child.nodeName;
+                            const value = child.textContent || '';
+                            row[key] = value;
+                            allHeaders.add(key);
+                        }
+                    });
+                    if (!removeEmpty || Object.keys(row).length > 0) {
+                        allRows.push({ section: 'PRESC_INFO', data: row });
+                    }
+                });
+            }
+
+            // Parse MEDICINAL_PRODUCT_PRICE
+            const priceInfo = root.querySelector('MEDICINAL_PRODUCT_PRICE');
+            if (priceInfo) {
+                const priceElements = priceInfo.querySelectorAll('PRICE_INFO');
+                priceElements.forEach(price => {
+                    const row = {};
+                    price.querySelectorAll('*').forEach(child => {
+                        if (child.children.length === 0) {
+                            const key = 'PRICE_' + child.nodeName;
+                            const value = child.textContent || '';
+                            row[key] = value;
+                            allHeaders.add(key);
+                        }
+                    });
+                    if (!removeEmpty || Object.keys(row).length > 0) {
+                        allRows.push({ section: 'PRICE_INFO', data: row });
+                    }
+                });
+            }
+
+            // Parse REIMBURSEMENT_INFO
+            const reimbInfo = root.querySelector('REIMBURSEMENT_INFO');
+            if (reimbInfo) {
+                const reimbElements = reimbInfo.querySelectorAll('REIMB_INFO');
+                reimbElements.forEach(reimb => {
+                    const row = {};
+                    reimb.querySelectorAll('*').forEach(child => {
+                        if (child.children.length === 0) {
+                            const key = 'REIMB_' + child.nodeName;
+                            const value = child.textContent || '';
+                            row[key] = value;
+                            allHeaders.add(key);
+                        }
+                    });
+                    if (!removeEmpty || Object.keys(row).length > 0) {
+                        allRows.push({ section: 'REIMB_INFO', data: row });
+                    }
+                });
+            }
+
+            // Parse COMB_CONTENT
+            const combContent = root.querySelector('COMB_CONTENT');
+            if (combContent) {
+                const ccontentElements = combContent.querySelectorAll('CCONTENT');
+                ccontentElements.forEach(ccontent => {
+                    const row = {};
+                    ccontent.querySelectorAll('*').forEach(child => {
+                        if (child.children.length === 0) {
+                            const key = 'COMB_' + child.nodeName;
+                            const value = child.textContent || '';
+                            row[key] = value;
+                            allHeaders.add(key);
+                        }
+                    });
+                    if (!removeEmpty || Object.keys(row).length > 0) {
+                        allRows.push({ section: 'COMB_CONTENT', data: row });
+                    }
+                });
+            }
+
+            // Sort headers
+            const headers = Array.from(allHeaders).sort();
+
+            // Build CSV
+            if (includeHeaders) {
+                csvContent += formatCsvRow(['SECTION', ...headers], separator, useQuotes) + '\n';
+            }
+
+            allRows.forEach(item => {
+                const values = [item.section];
+                headers.forEach(header => {
+                    values.push(item.data[header] || '');
+                });
+                csvContent += formatCsvRow(values, separator, useQuotes) + '\n';
+            });
+
+            return csvContent;
+        }
+
+        function formatCsvRow(values, separator, useQuotes) {
+            return values.map(value => {
+                const strValue = String(value);
+                if (useQuotes || strValue.includes(separator) || strValue.includes('"') || strValue.includes('\n')) {
+                    return '"' + strValue.replace(/"/g, '""') + '"';
+                }
+                return strValue;
+            }).join(separator);
+        }
+
+        function downloadCsv() {
+            if (!csvData) return;
+
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${originalFilename}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearAll() {
+            xmlFile = null;
+            csvData = null;
+            originalFilename = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            convertBtn.disabled = true;
+            downloadBtn.classList.remove('show');
+            outputSection.classList.remove('show');
+            csvPreview.textContent = '';
+            message.classList.remove('show');
+        }
+
+        function showMessage(text, type) {
+            if (text) {
+                message.textContent = text;
+                message.className = `message show ${type}`;
+            } else {
+                message.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
