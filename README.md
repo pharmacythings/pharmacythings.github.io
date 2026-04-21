@@ -1,5 +1,7 @@
 ...Does exactly as it says on the tin!
 
+MOSTLY password protected here. Ask for access
+
 <!--
 **pharmacythings/pharmacythings** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
