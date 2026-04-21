@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Pouch Projects</title>
+<title>Derek's Projects</title>
 
 <style>
 :root {
@@ -86,7 +86,7 @@ input, textarea, select {
 </head>
 
 <body>
-<H1>Pouch Projects</H1>
+<H1>Derek's Projects</H1>
 <div class="topbar">
 <select id="boardSelect" onchange="switchBoard(this.value)"></select>
 <button onclick="addBoard()">+ Board</button>
@@ -95,9 +95,9 @@ input, textarea, select {
 <option value="">All</option><option>low</option><option>medium</option><option>high</option>
 </select>
 <button onclick="addColumn()">+ Column</button>
-<button onclick="toggleView()">👓 View</button>
-<button onclick="showAnalytics()">🔢 Stats</button>
-<button onclick="toggleTheme()">🎨 Theme</button>
+<button onclick="toggleView()">📅 View</button>
+<button onclick="showAnalytics()">📊 Stats</button>
+<button onclick="toggleTheme()">🌙 Theme</button>
 <button onclick="exportData()">Export</button>
 <input type="file" onchange="importData(event)">
 <button onclick="copyCloud()">☁️ Copy</button>
@@ -119,8 +119,6 @@ columns:[
 {id:'todo',title:'To Do',color:'#667eea'},
 {id:'doing',title:'Doing',color:'#f59e0b'},
 {id:'done',title:'Done',color:'#10b981'}
-{id:'done',title:'Ongoing',color:'#335588'}
-{id:'done',title:'Delete',color:'#000000'}    
 ],
 tasks:[]
 }
@@ -398,6 +396,6 @@ db=JSON.parse(data);save();render();
 loadTheme();
 render();
 </script>
-<h3>©Derek Reid 2026</h3>
+
 </body>
 </html>
