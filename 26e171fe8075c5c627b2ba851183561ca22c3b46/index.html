@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Workflow Board</title>
+<title>Derek's Projects</title>
 
 <style>
 :root {
@@ -86,7 +86,7 @@ input, textarea, select {
 </head>
 
 <body>
-
+<H1>Derek's Projects</H1>
 <div class="topbar">
 <select id="boardSelect" onchange="switchBoard(this.value)"></select>
 <button onclick="addBoard()">+ Board</button>
@@ -115,6 +115,7 @@ current:'default',
 boards:{
 default:{
 columns:[
+{id:'pending',title:'Pending',color:'#9999dd'},    
 {id:'todo',title:'To Do',color:'#667eea'},
 {id:'doing',title:'Doing',color:'#f59e0b'},
 {id:'done',title:'Done',color:'#10b981'}
