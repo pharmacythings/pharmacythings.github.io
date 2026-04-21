@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Workflow Board</title>
+
+<style>
+:root {
+    --bg:#f4f5f7;
+    --text:#222;
+    --column:#eee;
+    --task:#fff;
+    --border:#ccc;
+    --highlight:#667eea;
+}
+
+body.dark {
+    --bg:#1e1f24;
+    --text:#e4e6eb;
+    --column:#2a2d34;
+    --task:#343741;
+    --border:#444;
+}
+
+body { font-family:Arial; background:var(--bg); color:var(--text); padding:20px; }
+
+.topbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; }
+
+.board { display:flex; gap:20px; }
+
+.column {
+    background:var(--column);
+    padding:10px;
+    border-radius:10px;
+    width:280px;
+}
+
+.column.drag-over {
+    outline:2px dashed var(--highlight);
+}
+
+.column-header {
+    display:flex;
+    justify-content:space-between;
+    cursor:grab;
+}
+
+.task {
+    background:var(--task);
+    border:1px solid var(--border);
+    padding:10px;
+    margin:10px 0;
+    border-radius:6px;
+    cursor:grab;
+}
+
+.task.dragging {
+    opacity:0.4;
+}
+
+.task-placeholder {
+    height:60px;
+    border:2px dashed var(--highlight);
+    border-radius:6px;
+    margin:10px 0;
+}
+
+input, textarea, select {
+    width:100%;
+    background:var(--task);
+    color:var(--text);
+    border:1px solid var(--border);
+}
+
+.avatar {
+    width:24px;height:24px;border-radius:50%;
+    background:#667eea;color:white;
+    display:flex;align-items:center;justify-content:center;
+}
+
+.priority-high { border-left:4px solid red; }
+.priority-medium { border-left:4px solid orange; }
+.priority-low { border-left:4px solid green; }
+
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+<select id="boardSelect" onchange="switchBoard(this.value)"></select>
+<button onclick="addBoard()">+ Board</button>
+<input id="search" placeholder="Search..." oninput="render()">
+<select id="filterPriority" onchange="render()">
+<option value="">All</option><option>low</option><option>medium</option><option>high</option>
+</select>
+<button onclick="addColumn()">+ Column</button>
+<button onclick="toggleView()">📅 View</button>
+<button onclick="showAnalytics()">📊 Stats</button>
+<button onclick="toggleTheme()">🌙 Theme</button>
+<button onclick="exportData()">Export</button>
+<input type="file" onchange="importData(event)">
+<button onclick="copyCloud()">☁️ Copy</button>
+<button onclick="loadCloud()">☁️ Load</button>
+</div>
+
+<div id="board" class="board"></div>
+
+<script>
+const DB_KEY='workflow_boards';
+const THEME_KEY='workflow_theme';
+
+let db=JSON.parse(localStorage.getItem(DB_KEY))||{
+current:'default',
+boards:{
+default:{
+columns:[
+{id:'todo',title:'To Do',color:'#667eea'},
+{id:'doing',title:'Doing',color:'#f59e0b'},
+{id:'done',title:'Done',color:'#10b981'}
+],
+tasks:[]
+}
+}
+};
+
+let view='board';
+let draggedTask=null;
+let draggedColumn=null;
+let placeholder=null;
+
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
+function getBoard(){return db.boards[db.current];}
+
+function loadTheme(){
+if(localStorage.getItem(THEME_KEY)==='dark') document.body.classList.add('dark');
+}
+
+function toggleTheme(){
+document.body.classList.toggle('dark');
+localStorage.setItem(THEME_KEY,
+document.body.classList.contains('dark')?'dark':'light');
+}
+
+function renderBoardSelector(){
+const sel=document.getElementById('boardSelect');
+sel.innerHTML='';
+Object.keys(db.boards).forEach(n=>{
+const o=document.createElement('option');
+o.value=n;o.textContent=n;
+if(n===db.current) o.selected=true;
+sel.appendChild(o);
+});
+}
+
+function switchBoard(n){db.current=n;save();render();}
+
+function addBoard(){
+const n=prompt('Board name');
+if(!n||db.boards[n]) return;
+db.boards[n]={columns:[],tasks:[]};
+db.current=n;save();render();
+}
+
+function render(){
+renderBoardSelector();
+if(view==='calendar'){renderCalendar();return;}
+
+const boardEl=document.getElementById('board');
+boardEl.innerHTML='';
+const {columns,tasks}=getBoard();
+
+const search=document.getElementById('search').value.toLowerCase();
+const filter=document.getElementById('filterPriority').value;
+
+columns.forEach(col=>{
+const el=document.createElement('div');
+el.className='column';
+el.dataset.id=col.id;
+
+el.ondragover=e=>{
+e.preventDefault();
+el.classList.add('drag-over');
+};
+
+el.ondragleave=()=>el.classList.remove('drag-over');
+
+el.ondrop=()=>{
+el.classList.remove('drag-over');
+
+if(draggedColumn){
+const from=columns.findIndex(c=>c.id===draggedColumn);
+const to=columns.findIndex(c=>c.id===col.id);
+const [m]=columns.splice(from,1);
+columns.splice(to,0,m);
+draggedColumn=null;
+save();render();
+return;
+}
+
+if(draggedTask){
+const t=tasks.find(x=>x.id===draggedTask);
+t.status=col.id;
+save();render();
+}
+};
+
+const header=document.createElement('div');
+header.className='column-header';
+
+header.draggable=true;
+header.ondragstart=e=>{
+draggedColumn=col.id;
+e.stopPropagation();
+};
+
+header.innerHTML=`
+<div>
+<input type="color" value="${col.color}" onchange="setColor('${col.id}',this.value)">
+<div contenteditable onblur="renameColumn('${col.id}',this.innerText)"
+style="border-left:4px solid ${col.color};padding-left:5px;">
+${col.title}
+</div>
+</div>
+<button onclick="deleteColumn('${col.id}')">🗑️</button>
+`;
+
+const box=document.createElement('div');
+
+tasks
+.filter(t=>t.status===col.id)
+.filter(t=>t.title.toLowerCase().includes(search))
+.filter(t=>!filter||t.priority===filter)
+.forEach(t=>{
+const tEl=document.createElement('div');
+tEl.className='task priority-'+t.priority;
+tEl.draggable=true;
+
+tEl.ondragstart=e=>{
+draggedTask=t.id;
+tEl.classList.add('dragging');
+e.stopPropagation();
+
+placeholder=document.createElement('div');
+placeholder.className='task-placeholder';
+tEl.after(placeholder);
+};
+
+tEl.ondragend=()=>{
+draggedTask=null;
+tEl.classList.remove('dragging');
+if(placeholder) placeholder.remove();
+};
+
+tEl.innerHTML=`
+<input value="${t.title}" onchange="updateTask(${t.id},'title',this.value)">
+<textarea onchange="updateTask(${t.id},'description',this.value)">${t.description||''}</textarea>
+<select onchange="updateTask(${t.id},'priority',this.value)">
+<option ${t.priority==='low'?'selected':''}>low</option>
+<option ${t.priority==='medium'?'selected':''}>medium</option>
+<option ${t.priority==='high'?'selected':''}>high</option>
+</select>
+<input type="date" value="${t.due||''}" onchange="updateTask(${t.id},'due',this.value)">
+<input placeholder="Assignee" value="${t.assignee||''}" onchange="updateTask(${t.id},'assignee',this.value)">
+<div style="display:flex;gap:5px;align-items:center;">
+<div class="avatar">${(t.assignee||'?')[0].toUpperCase()}</div>
+<small>${t.assignee||'Unassigned'}</small>
+</div>
+`;
+
+box.appendChild(tEl);
+});
+
+const btn=document.createElement('button');
+btn.textContent='+ Task';
+btn.onclick=()=>addTask(col.id);
+
+el.appendChild(header);
+el.appendChild(box);
+el.appendChild(btn);
+boardEl.appendChild(el);
+});
+}
+
+function renderCalendar(){
+const el=document.getElementById('board');
+el.innerHTML='';
+const tasks=getBoard().tasks;
+const grouped={};
+tasks.forEach(t=>{
+if(!t.due) return;
+(grouped[t.due]=grouped[t.due]||[]).push(t);
+});
+Object.keys(grouped).sort().forEach(d=>{
+const day=document.createElement('div');
+day.innerHTML='<h3>'+d+'</h3>';
+grouped[d].forEach(t=>{
+const e=document.createElement('div');
+e.className='task';
+e.textContent=t.title;
+day.appendChild(e);
+});
+el.appendChild(day);
+});
+}
+
+function addTask(status){
+getBoard().tasks.push({
+id:Date.now(),
+title:'New Task',
+description:'',
+priority:'medium',
+due:'',
+assignee:'',
+status
+});
+save();render();
+}
+
+function updateTask(id,f,v){
+const t=getBoard().tasks.find(t=>t.id===id);
+if(t){t[f]=v;save();}
+}
+
+function addColumn(){
+const n=prompt('Column');
+if(!n) return;
+const id=n.toLowerCase().replace(/\s+/g,'-');
+getBoard().columns.push({id,title:n,color:'#999'});
+save();render();
+}
+
+function renameColumn(id,name){
+const c=getBoard().columns.find(c=>c.id===id);
+if(name.trim()) c.title=name.trim();
+save();
+}
+
+function setColor(id,color){
+const c=getBoard().columns.find(c=>c.id===id);
+c.color=color;save();render();
+}
+
+function deleteColumn(id){
+const b=getBoard();
+b.columns=b.columns.filter(c=>c.id!==id);
+b.tasks=b.tasks.filter(t=>t.status!==id);
+save();render();
+}
+
+function toggleView(){
+view=view==='board'?'calendar':'board';
+render();
+}
+
+function showAnalytics(){
+const {tasks,columns}=getBoard();
+let overdue=0;
+const today=new Date().toISOString().split('T')[0];
+const per={};
+columns.forEach(c=>per[c.title]=0);
+tasks.forEach(t=>{
+const c=columns.find(c=>c.id===t.status);
+if(c) per[c.title]++;
+if(t.due&&t.due<today) overdue++;
+});
+alert(JSON.stringify({perColumn:per,overdue},null,2));
+}
+
+function exportData(){
+const blob=new Blob([JSON.stringify(db,null,2)]);
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='workflow.json';
+a.click();
+}
+
+function importData(e){
+const r=new FileReader();
+r.onload=()=>{db=JSON.parse(r.result);save();render();};
+r.readAsText(e.target.files[0]);
+}
+
+function copyCloud(){
+navigator.clipboard.writeText(JSON.stringify(db));
+alert('Copied');
+}
+
+function loadCloud(){
+const data=prompt('Paste data');
+if(!data) return;
+db=JSON.parse(data);save();render();
+}
+
+loadTheme();
+render();
+</script>
+
+</body>
+</html>
