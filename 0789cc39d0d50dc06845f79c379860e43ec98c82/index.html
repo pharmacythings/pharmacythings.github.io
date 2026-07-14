@@ -745,9 +745,15 @@
             <div id="filterMonth" class="filter-content">
                 <div class="filter-controls">
                     <div class="date-input-group">
+                        <label for="yearSelect">Year</label>
+                        <select id="yearSelect" onchange="applyFilterMonth()">
+                            <option value="">-- All Years --</option>
+                        </select>
+                    </div>
+                    <div class="date-input-group">
                         <label for="monthSelect">Month</label>
                         <select id="monthSelect" onchange="applyFilterMonth()">
-                            <option value="">-- Select Month --</option>
+                            <option value="">-- All Months --</option>
                             <option value="01">January</option>
                             <option value="02">February</option>
                             <option value="03">March</option>
@@ -993,6 +999,19 @@
                 if (item.batchId && item.batchId.length >= 4)
                     availableMonths.add(item.batchId.substring(0, 4));
             });
+
+            const years = [...new Set(
+                allData.map(item => item.batchId && item.batchId.length >= 2 ? item.batchId.substring(0, 2) : null)
+                       .filter(Boolean)
+            )].sort();
+            const yearSelect = document.getElementById('yearSelect');
+            yearSelect.innerHTML = '<option value="">-- All Years --</option>';
+            years.forEach(yy => {
+                const opt = document.createElement('option');
+                opt.value = yy;
+                opt.textContent = '20' + yy;
+                yearSelect.appendChild(opt);
+            });
         }
 
         function populateLocationList() {
@@ -1117,22 +1136,38 @@
 
         function applyFilterMonth() {
             const mm = document.getElementById('monthSelect').value;
-            if (!mm) { document.getElementById('filterInfoMonth').style.display = 'none'; document.getElementById('debugInfo').style.display = 'none'; analyzeData(allData); return; }
+            const yy = document.getElementById('yearSelect').value;
+            if (!mm && !yy) {
+                document.getElementById('filterInfoMonth').style.display = 'none';
+                document.getElementById('debugInfo').style.display = 'none';
+                analyzeData(allData);
+                return;
+            }
             try {
-                const filteredData = allData.filter(item => item.batchId && item.batchId.length >= 4 && item.batchId.substring(2, 4) === mm);
+                const filteredData = allData.filter(item => {
+                    if (!item.batchId || item.batchId.length < 4) return false;
+                    const itemYY = item.batchId.substring(0, 2);
+                    const itemMM = item.batchId.substring(2, 4);
+                    return (!yy || itemYY === yy) && (!mm || itemMM === mm);
+                });
                 if (filteredData.length === 0) {
                     const debugInfo = document.getElementById('debugInfo');
-                    debugInfo.innerHTML = `<strong>Debug Info:</strong><br>Looking for month: ${mm}<br>Available months: ${Array.from(availableMonths).sort().join(', ')}<br>Sample BatchIds: ${allData.slice(0, 5).map(d => d.batchId).join(', ')}`;
+                    debugInfo.innerHTML = `<strong>Debug Info:</strong><br>Looking for year: ${yy || 'any'}, month: ${mm || 'any'}<br>Available months (YYMM): ${Array.from(availableMonths).sort().join(', ')}<br>Sample BatchIds: ${allData.slice(0, 5).map(d => d.batchId).join(', ')}`;
                     debugInfo.style.display = 'block';
-                    alert('No data found for ' + ['','January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(mm)]);
+                    alert('No data found for the selected period');
                     return;
                 }
-                const monthName = ['','January','February','March','April','May','June','July','August','September','October','November','December'][parseInt(mm)];
+                const monthNames = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+                let desc = '';
+                if (mm && yy) desc = `${monthNames[parseInt(mm)]} 20${yy}`;
+                else if (mm)  desc = `all ${monthNames[parseInt(mm)]} entries`;
+                else          desc = `all of 20${yy}`;
+
                 const filterInfo = document.getElementById('filterInfoMonth');
-                filterInfo.innerHTML = `✓ Showing data for all ${monthName} entries (${filteredData.length} records)`;
+                filterInfo.innerHTML = `✓ Showing data for ${desc} (${filteredData.length} records)`;
                 filterInfo.style.display = 'block';
                 document.getElementById('debugInfo').style.display = 'none';
-                updatePrintHeader(monthName);
+                updatePrintHeader(desc);
                 analyzeData(filteredData);
             } catch (error) { alert('Error: ' + error.message); }
         }
@@ -1142,6 +1177,7 @@
             document.getElementById('endDate').value = '';
             document.getElementById('customStartDate').value = '';
             document.getElementById('customEndDate').value = '';
+            document.getElementById('yearSelect').value = '';
             document.getElementById('monthSelect').value = '';
             ['filterInfo7Days','filterInfoCustom','filterInfoMonth','debugInfo'].forEach(id => document.getElementById(id).style.display = 'none');
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
