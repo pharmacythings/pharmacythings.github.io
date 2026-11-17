@@ -1,0 +1,315 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Canister Volvelle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one big card wheel (rotating name disc under a fixed teal cover with a slot window), controls beside it, stacking on phones */
+:root {
+  --bg: #e9efed;
+  --disc: #fbfdfc;
+  --disc-edge: #c9d6d2;
+  --ink: #17302c;
+  --ink-soft: #5d7470;
+  --cover: #1f4d47;
+  --cover-ink: #e3f1ed;
+  --cover-soft: #9fc3bb;
+  --slot: #ffffff;
+  --accent: #d9861c;
+  --accent-ink: #ffffff;
+  --hair: #d6e0dd;
+  --panel: #f7faf9;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1615; --disc: #1a2422; --disc-edge: #2c3a37; --ink: #dce9e5; --ink-soft: #8ea5a0;
+    --cover: #123a35; --cover-ink: #e3f1ed; --cover-soft: #86b3a9; --slot: #f3f8f6;
+    --accent: #eea13e; --accent-ink: #1a1206; --hair: #26332f; --panel: #141e1c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1615; --disc: #1a2422; --disc-edge: #2c3a37; --ink: #dce9e5; --ink-soft: #8ea5a0;
+  --cover: #123a35; --cover-ink: #e3f1ed; --cover-soft: #86b3a9; --slot: #f3f8f6;
+  --accent: #eea13e; --accent-ink: #1a1206; --hair: #26332f; --panel: #141e1c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+.wheel-box { min-width: 0; }
+svg#wheel { width: 100%; max-width: 860px; height: auto; display: block; margin: 0 auto; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+svg#wheel.dragging { cursor: grabbing; }
+svg#wheel:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; border-radius: 50%; }
+.name { font-family: var(--display); font-weight: 500; font-size: 10.5px; fill: var(--ink); }
+.name.on { fill: var(--accent); font-weight: 700; }
+.letter { font-family: var(--display); font-weight: 700; font-size: 15px; fill: var(--ink-soft); }
+aside { display: grid; gap: 18px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+h1 { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.sub { color: var(--ink-soft); margin: 6px 0 0; line-height: 1.45; }
+label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); font-weight: 600; display: block; margin-bottom: 6px; }
+input#find { width: 100%; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--disc-edge); border-radius: 8px; background: var(--disc); color: var(--ink); }
+input#find:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hint { font-size: 13px; color: var(--ink-soft); margin-top: 6px; min-height: 1.2em; }
+.steps { display: flex; gap: 8px; }
+.steps button { flex: 1; font: inherit; font-weight: 600; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--disc-edge); background: var(--disc); color: var(--ink); cursor: pointer; }
+.steps button:hover { border-color: var(--accent); }
+.steps button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.readout { background: var(--panel); border: 1px solid var(--hair); border-radius: 10px; padding: 14px 16px; }
+.readout h2 { font-family: var(--display); font-size: 26px; font-weight: 700; margin: 0 0 8px; line-height: 1.05; }
+.readout table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.readout td { padding: 6px 0; border-top: 1px solid var(--hair); }
+.readout td.f { color: var(--ink-soft); font-size: 13px; }
+.readout td.c { text-align: right; }
+.can { display: inline-block; min-width: 46px; text-align: center; font-family: var(--mono); font-weight: 600; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 2px 8px; }
+tr.hit td { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.foot { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); }
+  aside { position: static; }
+}
+</style>
+
+<div class="wrap">
+  <div class="wheel-box">
+    <svg id="wheel" viewBox="0 0 1000 1000" tabindex="0" role="slider" aria-label="Medicine wheel. Use arrow keys to turn." aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+      <defs>
+        <filter id="lift" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-opacity=".28"/></filter>
+      </defs>
+      <!-- rotating base disc -->
+      <g id="rot">
+        <circle cx="500" cy="500" r="496" fill="var(--disc)" stroke="var(--disc-edge)" stroke-width="2"/>
+        <circle cx="500" cy="500" r="472" fill="none" stroke="var(--hair)" stroke-width="1"/>
+        <g id="ticks"></g>
+        <g id="names"></g>
+      </g>
+      <!-- fixed reading cursor over the rim -->
+      <path d="M492 4 L508 4 L508 300 L492 300 Z" fill="var(--accent)" opacity=".13"/>
+      <path d="M486 0 L514 0 L500 16 Z" fill="var(--accent)"/>
+      <!-- fixed cover disc with slot -->
+      <path id="cover" fill="var(--cover)" fill-rule="evenodd" filter="url(#lift)" d=""/>
+      <circle cx="500" cy="500" r="290" fill="none" stroke="var(--cover-soft)" stroke-width="1" stroke-dasharray="2 5" opacity=".6"/>
+      <g id="slotContent"></g>
+      <text x="500" y="590" text-anchor="middle" id="bigName" style="font-family:var(--display);font-weight:700;font-size:34px;fill:var(--cover-ink)"></text>
+      <text x="500" y="620" text-anchor="middle" id="bigCount" style="font-family:var(--body);font-size:15px;fill:var(--cover-soft);letter-spacing:.08em"></text>
+      <text x="500" y="690" text-anchor="middle" style="font-family:var(--display);font-weight:600;font-size:17px;fill:var(--cover-soft);letter-spacing:.22em">CANISTER FINDER</text>
+      <text x="500" y="712" text-anchor="middle" style="font-family:var(--body);font-size:12.5px;fill:var(--cover-soft)">turn the rim · read through the window</text>
+      <!-- rivet -->
+      <circle cx="500" cy="500" r="15" fill="var(--accent)"/>
+      <circle cx="500" cy="500" r="6" fill="var(--cover)"/>
+    </svg>
+  </div>
+
+  <aside>
+    <div>
+      <h1>Canister Finder</h1>
+      <p class="sub">Drag the rim, scroll, or use the arrow keys. The medicine under the amber pointer shows its strengths and canister numbers in the window.</p>
+    </div>
+    <div>
+      <label for="find">Find a medicine or canister no.</label>
+      <input id="find" type="text" autocomplete="off" list="drugList" placeholder="e.g. Sertraline or 272">
+      <datalist id="drugList"></datalist>
+      <div class="hint" id="hint"></div>
+    </div>
+    <div class="steps">
+      <button type="button" id="prev">◀ Previous</button>
+      <button type="button" id="next">Next ▶</button>
+    </div>
+    <div class="readout" id="readout"></div>
+    <p class="foot" id="foot"></p>
+  </aside>
+</div>
+
+<script>
+const DATA = [{"n":"Acamprosate","v":[{"s":"333mg","f":"GR tabs","c":179}]},{"n":"Accrete D3","v":[{"s":"","f":"tabs","c":502}]},{"n":"Adcal-D3","v":[{"s":"750mg/200unit","f":"caplets","c":531}]},{"n":"Alendronic Acid","v":[{"s":"70mg","f":"tabs","c":322}]},{"n":"Allopurinol","v":[{"s":"100mg","f":"tabs","c":235},{"s":"300mg","f":"tabs","c":157}]},{"n":"Alogliptin","v":[{"s":"25mg","f":"tabs","c":209}]},{"n":"Alverine","v":[{"s":"60mg","f":"caps","c":60}]},{"n":"Amiodarone","v":[{"s":"100mg","f":"tabs","c":255},{"s":"200mg","f":"tabs","c":323}]},{"n":"Amisulpride","v":[{"s":"100mg","f":"tabs","c":122},{"s":"200mg","f":"tabs","c":40}]},{"n":"Amitriptyline","v":[{"s":"10mg","f":"tabs","c":296},{"s":"25mg","f":"tabs","c":52},{"s":"50mg","f":"tabs","c":131}]},{"n":"Amlodipine","v":[{"s":"5mg","f":"tabs","c":340},{"s":"10mg","f":"tabs","c":175}]},{"n":"Apixaban","v":[{"s":"2.5mg","f":"tabs","c":224},{"s":"5mg","f":"tabs","c":335}]},{"n":"Aripiprazole","v":[{"s":"5mg","f":"tabs","c":311},{"s":"10mg","f":"tabs","c":159},{"s":"15mg","f":"tabs","c":254}]},{"n":"Aspirin","v":[{"s":"75mg","f":"GR tabs","c":216},{"s":"75mg","f":"dispersible tabs","c":349},{"s":"75mg","f":"tabs","c":307}]},{"n":"Atenolol","v":[{"s":"25mg","f":"tabs","c":285},{"s":"50mg","f":"tabs","c":226},{"s":"100mg","f":"tabs","c":298}]},{"n":"Atorvastatin","v":[{"s":"10mg","f":"tabs","c":270},{"s":"20mg","f":"tabs","c":21},{"s":"40mg","f":"tabs","c":542},{"s":"80mg","f":"tabs","c":540}]},{"n":"Azathioprine","v":[{"s":"25mg","f":"tabs","c":303},{"s":"50mg","f":"tabs","c":268}]},{"n":"Baclofen","v":[{"s":"10mg","f":"tabs","c":314}]},{"n":"Bendroflumethiazide","v":[{"s":"2.5mg","f":"tabs","c":219}]},{"n":"Betahistine","v":[{"s":"8mg","f":"tabs","c":338},{"s":"16mg","f":"tabs","c":213}]},{"n":"Bisacodyl","v":[{"s":"5mg","f":"GR tabs","c":230}]},{"n":"Bisoprolol","v":[{"s":"1.25mg","f":"tabs","c":278},{"s":"2.5mg","f":"tabs","c":347},{"s":"3.75mg","f":"tabs","c":253},{"s":"5mg","f":"tabs","c":218},{"s":"7.5mg","f":"tabs","c":168},{"s":"10mg","f":"tabs","c":146}]},{"n":"Brivaracetam","v":[{"s":"100mg","f":"tabs","c":90}]},{"n":"Bumetanide","v":[{"s":"1mg","f":"tabs","c":150}]},{"n":"Buspirone","v":[{"s":"5mg","f":"tabs","c":138},{"s":"10mg","f":"tabs","c":130}]},{"n":"Calcichew D3","v":[{"s":"","f":"chewable tabs","c":11}]},{"n":"Calcichew D3 Forte","v":[{"s":"","f":"chewable tabs","c":1}]},{"n":"Canagliflozin","v":[{"s":"300mg","f":"tabs","c":38}]},{"n":"Candesartan","v":[{"s":"2mg","f":"tabs","c":266},{"s":"4mg","f":"tabs","c":27},{"s":"8mg","f":"tabs","c":178},{"s":"16mg","f":"tabs","c":276},{"s":"32mg","f":"tabs","c":293}]},{"n":"Carbamazepine","v":[{"s":"100mg","f":"tabs","c":352},{"s":"200mg","f":"MR tabs","c":59},{"s":"200mg","f":"tabs","c":358}]},{"n":"Carbocisteine","v":[{"s":"375mg","f":"caps","c":36}]},{"n":"Carvedilol","v":[{"s":"3.125mg","f":"tabs","c":62},{"s":"6.25mg","f":"tabs","c":41},{"s":"12.5mg","f":"tabs","c":242},{"s":"25mg","f":"tabs","c":246}]},{"n":"Celecoxib","v":[{"s":"100mg","f":"caps","c":510},{"s":"200mg","f":"caps","c":513}]},{"n":"Cetirizine","v":[{"s":"10mg","f":"tabs","c":141}]},{"n":"Chlorphenamine","v":[{"s":"4mg","f":"tabs","c":142}]},{"n":"Chlorpromazine","v":[{"s":"25mg","f":"tabs","c":214},{"s":"50mg","f":"tabs","c":177},{"s":"100mg","f":"tabs","c":301}]},{"n":"Cinnarizine","v":[{"s":"15mg","f":"tabs","c":165}]},{"n":"Citalopram","v":[{"s":"10mg","f":"tabs","c":240},{"s":"20mg","f":"tabs","c":327},{"s":"40mg","f":"tabs","c":326}]},{"n":"Clobazam","v":[{"s":"10mg","f":"tabs","c":144}]},{"n":"Clonazepam","v":[{"s":"500mcg","f":"tabs","c":174}]},{"n":"Clonidine","v":[{"s":"25mcg","f":"tabs","c":264}]},{"n":"Clopidogrel","v":[{"s":"75mg","f":"tabs","c":195}]},{"n":"Co-beneldopa","v":[{"s":"12.5mg/50mg","f":"caps","c":120}]},{"n":"Co-careldopa","v":[{"s":"12.5mg/50mg","f":"tabs","c":291},{"s":"25mg/100mg","f":"tabs","c":295}]},{"n":"Co-codamol","v":[{"s":"8mg/500mg","f":"tabs","c":85},{"s":"15mg/500mg","f":"tabs","c":512},{"s":"30mg/500mg","f":"caps","c":4},{"s":"30mg/500mg","f":"tabs","c":505}]},{"n":"Co-dydramol","v":[{"s":"10mg/500mg","f":"tabs","c":514},{"s":"30mg/500mg","f":"tabs","c":116}]},{"n":"Codeine","v":[{"s":"15mg","f":"tabs","c":319},{"s":"30mg","f":"tabs","c":290}]},{"n":"Colecalciferol","v":[{"s":"800unit","f":"caps","c":227},{"s":"800unit","f":"tabs","c":310}]},{"n":"Cyanocobalamin","v":[{"s":"50mcg","f":"tabs","c":269},{"s":"100mcg","f":"tabs","c":136}]},{"n":"Cyclizine","v":[{"s":"50mg","f":"tabs","c":172}]},{"n":"Dapagliflozin","v":[{"s":"5mg","f":"tabs","c":289},{"s":"10mg","f":"tabs","c":201}]},{"n":"Diazepam","v":[{"s":"2mg","f":"tabs","c":233},{"s":"5mg","f":"tabs","c":220}]},{"n":"Digoxin","v":[{"s":"62.5mcg","f":"tabs","c":164},{"s":"125mcg","f":"tabs","c":359},{"s":"250mcg","f":"tabs","c":124}]},{"n":"Dihydrocodeine","v":[{"s":"30mg","f":"tabs","c":29},{"s":"60mg","f":"MR tabs","c":170}]},{"n":"Docusate","v":[{"s":"100mg","f":"caps","c":102}]},{"n":"Donepezil","v":[{"s":"5mg","f":"tabs","c":207},{"s":"10mg","f":"tabs","c":118}]},{"n":"Doxazosin","v":[{"s":"1mg","f":"tabs","c":153},{"s":"2mg","f":"tabs","c":232},{"s":"4mg","f":"tabs","c":222}]},{"n":"Duloxetine","v":[{"s":"30mg","f":"GR caps","c":119},{"s":"40mg","f":"GR caps","c":94},{"s":"60mg","f":"GR caps","c":14},{"s":"90mg","f":"GR caps","c":92},{"s":"120mg","f":"GR caps","c":24}]},{"n":"Edoxaban","v":[{"s":"30mg","f":"tabs","c":208},{"s":"60mg","f":"tabs","c":158}]},{"n":"Empagliflozin","v":[{"s":"10mg","f":"tabs","c":274},{"s":"25mg","f":"tabs","c":104}]},{"n":"Enalapril","v":[{"s":"5mg","f":"tabs","c":182},{"s":"20mg","f":"tabs","c":302}]},{"n":"Eplerenone","v":[{"s":"25mg","f":"tabs","c":113},{"s":"50mg","f":"tabs","c":155}]},{"n":"Esomeprazole","v":[{"s":"20mg","f":"GR caps","c":79},{"s":"20mg","f":"GR tabs","c":48},{"s":"40mg","f":"GR caps","c":117},{"s":"40mg","f":"GR tabs","c":84}]},{"n":"Etodolac","v":[{"s":"600mg","f":"MR tabs","c":83}]},{"n":"Ezetimibe","v":[{"s":"10mg","f":"tabs","c":300}]},{"n":"Famotidine","v":[{"s":"20mg","f":"tabs","c":44},{"s":"40mg","f":"tabs","c":43}]},{"n":"Felodipine","v":[{"s":"10mg","f":"MR tabs","c":304}]},{"n":"Ferrous Fumarate","v":[{"s":"210mg","f":"tabs","c":333},{"s":"322mg","f":"tabs","c":245}]},{"n":"Ferrous Sulfate","v":[{"s":"200mg","f":"tabs","c":260}]},{"n":"Fexofenadine","v":[{"s":"120mg","f":"tabs","c":81},{"s":"180mg","f":"tabs","c":105}]},{"n":"Finasteride","v":[{"s":"5mg","f":"tabs","c":180}]},{"n":"Fludrocortisone","v":[{"s":"100mcg","f":"tabs","c":321}]},{"n":"Fluoxetine","v":[{"s":"20mg","f":"caps","c":534}]},{"n":"Folic Acid","v":[{"s":"5mg","f":"tabs","c":251}]},{"n":"Forceval","v":[{"s":"","f":"caps","c":6}]},{"n":"Furosemide","v":[{"s":"20mg","f":"tabs","c":337},{"s":"40mg","f":"tabs","c":332}]},{"n":"Gabapentin","v":[{"s":"100mg","f":"caps","c":93},{"s":"300mg","f":"caps","c":503},{"s":"400mg","f":"caps","c":63},{"s":"600mg","f":"tabs","c":70}]},{"n":"Gliclazide","v":[{"s":"30mg","f":"MR tabs","c":308},{"s":"40mg","f":"tabs","c":283},{"s":"80mg","f":"tabs","c":149}]},{"n":"Hydrocortisone","v":[{"s":"10mg","f":"tabs","c":151}]},{"n":"Hydroxychloroquine","v":[{"s":"200mg","f":"tabs","c":330}]},{"n":"Hyoscine Butylbromide","v":[{"s":"10mg","f":"tabs","c":348}]},{"n":"Hyoscine Hydrobromide","v":[{"s":"300mcg","f":"tabs","c":166}]},{"n":"Ibuprofen","v":[{"s":"400mg","f":"tabs","c":204}]},{"n":"Imipramine","v":[{"s":"25mg","f":"tabs","c":229}]},{"n":"Indapamide","v":[{"s":"2.5mg","f":"tabs","c":277}]},{"n":"Irbesartan","v":[{"s":"75mg","f":"tabs","c":256},{"s":"150mg","f":"tabs","c":257},{"s":"300mg","f":"tabs","c":258}]},{"n":"Isosorbide Mononitrate","v":[{"s":"10mg","f":"tabs","c":31},{"s":"20mg","f":"tabs","c":355},{"s":"25mg","f":"MR caps","c":47},{"s":"40mg","f":"tabs","c":125},{"s":"60mg","f":"MR tabs","c":18}]},{"n":"Ivabradine","v":[{"s":"2.5mg","f":"tabs","c":171},{"s":"5mg","f":"tabs","c":351},{"s":"7.5mg","f":"tabs","c":265}]},{"n":"Lacosamide","v":[{"s":"100mg","f":"tabs","c":317}]},{"n":"Lamotrigine","v":[{"s":"25mg","f":"tabs","c":360},{"s":"50mg","f":"tabs","c":190},{"s":"100mg","f":"tabs","c":115},{"s":"200mg","f":"tabs","c":193}]},{"n":"Lansoprazole","v":[{"s":"15mg","f":"GR caps","c":343},{"s":"30mg","f":"GR caps","c":506}]},{"n":"Lercanidipine","v":[{"s":"10mg","f":"tabs","c":357},{"s":"20mg","f":"tabs","c":147}]},{"n":"Letrozole","v":[{"s":"2.5mg","f":"tabs","c":312}]},{"n":"Levetiracetam","v":[{"s":"250mg","f":"tabs","c":51},{"s":"500mg","f":"tabs","c":69},{"s":"750mg","f":"tabs","c":2},{"s":"1g","f":"tabs","c":109}]},{"n":"Levothyroxine Sodium","v":[{"s":"25mcg","f":"tabs","c":221},{"s":"50mcg","f":"tabs","c":350},{"s":"100mcg","f":"tabs","c":356}]},{"n":"Linagliptin","v":[{"s":"5mg","f":"tabs","c":108}]},{"n":"Lisinopril","v":[{"s":"2.5mg","f":"tabs","c":267},{"s":"5mg","f":"tabs","c":169},{"s":"10mg","f":"tabs","c":28},{"s":"20mg","f":"tabs","c":237}]},{"n":"Lithium Carbonate","v":[{"s":"200mg","f":"MR tabs","c":189},{"s":"400mg","f":"MR tabs","c":188}]},{"n":"Lofepramine","v":[{"s":"70mg","f":"tabs","c":148}]},{"n":"Loperamide","v":[{"s":"2mg","f":"caps","c":10}]},{"n":"Loratadine","v":[{"s":"10mg","f":"tabs","c":128}]},{"n":"Losartan","v":[{"s":"12.5mg","f":"tabs","c":184},{"s":"25mg","f":"tabs","c":123},{"s":"50mg","f":"tabs","c":341},{"s":"100mg","f":"tabs","c":346}]},{"n":"Mebeverine","v":[{"s":"135mg","f":"tabs","c":329},{"s":"200mg","f":"MR caps","c":55}]},{"n":"Melatonin","v":[{"s":"2mg","f":"MR tabs","c":279},{"s":"3mg","f":"tabs","c":185}]},{"n":"Memantine","v":[{"s":"10mg","f":"tabs","c":111},{"s":"20mg","f":"tabs","c":533}]},{"n":"Metformin","v":[{"s":"500mg","f":"MR tabs","c":17},{"s":"500mg","f":"tabs","c":501},{"s":"850mg","f":"tabs","c":54},{"s":"1g","f":"MR tabs","c":58}]},{"n":"Methenamine Hippurate","v":[{"s":"1g","f":"tabs","c":88}]},{"n":"Metoclopramide","v":[{"s":"10mg","f":"tabs","c":344}]},{"n":"Mirabegron","v":[{"s":"25mg","f":"MR tabs","c":315},{"s":"50mg","f":"MR tabs","c":336}]},{"n":"Mirtazapine","v":[{"s":"15mg","f":"tabs","c":234},{"s":"30mg","f":"tabs","c":134},{"s":"45mg","f":"tabs","c":61}]},{"n":"Montelukast","v":[{"s":"10mg","f":"tabs","c":325}]},{"n":"Mycophenolate Mofetil","v":[{"s":"500mg","f":"tabs","c":53}]},{"n":"Naftidrofuryl","v":[{"s":"100mg","f":"caps","c":46}]},{"n":"Naproxen","v":[{"s":"250mg","f":"tabs","c":328},{"s":"500mg","f":"tabs","c":37}]},{"n":"Nefopam","v":[{"s":"30mg","f":"tabs","c":292}]},{"n":"Nicorandil","v":[{"s":"10mg","f":"tabs","c":306},{"s":"20mg","f":"tabs","c":342}]},{"n":"Nitrazepam","v":[{"s":"5mg","f":"tabs","c":25}]},{"n":"Nortriptyline","v":[{"s":"10mg","f":"tabs","c":212},{"s":"25mg","f":"tabs","c":318}]},{"n":"Olanzapine","v":[{"s":"2.5mg","f":"tabs","c":137},{"s":"5mg","f":"tabs","c":297},{"s":"7.5mg","f":"tabs","c":271},{"s":"10mg","f":"tabs","c":20},{"s":"15mg","f":"tabs","c":247},{"s":"20mg","f":"tabs","c":187}]},{"n":"Omeprazole","v":[{"s":"10mg","f":"GR caps","c":13},{"s":"20mg","f":"GR caps","c":511},{"s":"40mg","f":"GR caps","c":107}]},{"n":"Oxcarbazepine","v":[{"s":"300mg","f":"tabs","c":211},{"s":"600mg","f":"tabs","c":223}]},{"n":"Oxybutynin","v":[{"s":"2.5mg","f":"tabs","c":126},{"s":"5mg","f":"tabs","c":127}]},{"n":"Pantoprazole","v":[{"s":"20mg","f":"GR tabs","c":339},{"s":"40mg","f":"GR tabs","c":145}]},{"n":"Paracetamol","v":[{"s":"500mg","f":"caps","c":33},{"s":"500mg","f":"tabs","c":521}]},{"n":"Paroxetine","v":[{"s":"20mg","f":"tabs","c":176},{"s":"30mg","f":"tabs","c":194}]},{"n":"Peppermint Oil","v":[{"s":"0.2ml","f":"GR caps","c":35}]},{"n":"Perindopril Erbumine","v":[{"s":"2mg","f":"tabs","c":154},{"s":"4mg","f":"tabs","c":205},{"s":"8mg","f":"tabs","c":299}]},{"n":"Phenoxymethylpenicillin","v":[{"s":"250mg","f":"tabs","c":241}]},{"n":"Phenytoin Sodium","v":[{"s":"100mg","f":"caps","c":100}]},{"n":"Pioglitazone","v":[{"s":"30mg","f":"tabs","c":259}]},{"n":"Pizotifen","v":[{"s":"500mcg","f":"tabs","c":140},{"s":"1.5mg","f":"tabs","c":139}]},{"n":"Prazosin","v":[{"s":"500mcg","f":"tabs","c":313}]},{"n":"Prednisolone","v":[{"s":"5mg","f":"tabs","c":161}]},{"n":"Pregabalin","v":[{"s":"25mg","f":"caps","c":86},{"s":"50mg","f":"caps","c":112},{"s":"75mg","f":"caps","c":73},{"s":"100mg","f":"caps","c":64},{"s":"150mg","f":"caps","c":87},{"s":"200mg","f":"caps","c":15},{"s":"225mg","f":"caps","c":45},{"s":"300mg","f":"caps","c":19}]},{"n":"Primidone","v":[{"s":"50mg","f":"tabs","c":132}]},{"n":"Prochlorperazine","v":[{"s":"5mg","f":"tabs","c":294}]},{"n":"Procyclidine","v":[{"s":"5mg","f":"tabs","c":287}]},{"n":"Promethazine Hydrochloride","v":[{"s":"25mg","f":"tabs","c":192}]},{"n":"Propranolol","v":[{"s":"10mg","f":"tabs","c":286},{"s":"40mg","f":"tabs","c":281},{"s":"80mg","f":"MR caps","c":98},{"s":"80mg","f":"tabs","c":129}]},{"n":"Quetiapine","v":[{"s":"25mg","f":"tabs","c":239},{"s":"100mg","f":"tabs","c":244},{"s":"150mg","f":"tabs","c":32},{"s":"200mg","f":"tabs","c":56},{"s":"300mg","f":"tabs","c":57}]},{"n":"Quinine Sulfate","v":[{"s":"200mg","f":"tabs","c":152},{"s":"300mg","f":"tabs","c":236}]},{"n":"Ramipril","v":[{"s":"1.25mg","f":"caps","c":95},{"s":"2.5mg","f":"caps","c":16},{"s":"5mg","f":"caps","c":99},{"s":"10mg","f":"caps","c":103}]},{"n":"Remedeine","v":[{"s":"","f":"tabs","c":23}]},{"n":"Risperidone","v":[{"s":"500mcg","f":"tabs","c":275},{"s":"1mg","f":"tabs","c":263},{"s":"2mg","f":"tabs","c":198},{"s":"3mg","f":"tabs","c":199}]},{"n":"Rivaroxaban","v":[{"s":"20mg","f":"tabs","c":162}]},{"n":"Ropinirole","v":[{"s":"1mg","f":"tabs","c":334}]},{"n":"Rosuvastatin","v":[{"s":"5mg","f":"tabs","c":243},{"s":"10mg","f":"tabs","c":288},{"s":"20mg","f":"tabs","c":156}]},{"n":"Senna","v":[{"s":"7.5mg","f":"tabs","c":541}]},{"n":"Sertraline","v":[{"s":"50mg","f":"tabs","c":34},{"s":"100mg","f":"tabs","c":272}]},{"n":"Simvastatin","v":[{"s":"20mg","f":"tabs","c":284},{"s":"40mg","f":"tabs","c":49}]},{"n":"Sitagliptin","v":[{"s":"100mg","f":"tabs","c":273}]},{"n":"Sodium Bicarbonate","v":[{"s":"500mg","f":"caps","c":74}]},{"n":"Solifenacin","v":[{"s":"5mg","f":"tabs","c":26},{"s":"10mg","f":"tabs","c":238}]},{"n":"Spironolactone","v":[{"s":"25mg","f":"tabs","c":203},{"s":"50mg","f":"tabs","c":345},{"s":"100mg","f":"tabs","c":202}]},{"n":"Stexerol-D3","v":[{"s":"1000unit","f":"tabs","c":30}]},{"n":"Sulfasalazine","v":[{"s":"500mg","f":"GR tabs","c":12}]},{"n":"Tamsulosin","v":[{"s":"400mcg","f":"MR caps","c":91}]},{"n":"Thiamine","v":[{"s":"50mg","f":"tabs","c":22},{"s":"100mg","f":"tabs","c":324}]},{"n":"Tildiem LA","v":[{"s":"200mg","f":"caps","c":96},{"s":"300mg","f":"caps","c":89}]},{"n":"Tildiem Retard","v":[{"s":"120mg","f":"tabs","c":309}]},{"n":"Tolterodine","v":[{"s":"2mg","f":"tabs","c":305},{"s":"4mg","f":"MR caps","c":68}]},{"n":"Topiramate","v":[{"s":"25mg","f":"tabs","c":228},{"s":"50mg","f":"tabs","c":248},{"s":"100mg","f":"tabs","c":249},{"s":"200mg","f":"tabs","c":250}]},{"n":"Tramadol","v":[{"s":"50mg","f":"caps","c":504}]},{"n":"Trazodone","v":[{"s":"50mg","f":"caps","c":80},{"s":"100mg","f":"caps","c":67},{"s":"150mg","f":"tabs","c":160}]},{"n":"Trihexyphenidyl","v":[{"s":"2mg","f":"tabs","c":200},{"s":"5mg","f":"tabs","c":206}]},{"n":"Uniphyllin Continus","v":[{"s":"200mg","f":"tabs","c":252}]},{"n":"Venlafaxine","v":[{"s":"37.5mg","f":"tabs","c":163},{"s":"75mg","f":"MR caps","c":71},{"s":"75mg","f":"MR tabs","c":42},{"s":"75mg","f":"tabs","c":210},{"s":"150mg","f":"MR caps","c":82},{"s":"150mg","f":"MR tabs","c":320},{"s":"225mg","f":"MR tabs","c":331}]},{"n":"Zolpidem","v":[{"s":"5mg","f":"tabs","c":181},{"s":"10mg","f":"tabs","c":354}]},{"n":"Zopiclone","v":[{"s":"3.75mg","f":"tabs","c":133},{"s":"7.5mg","f":"tabs","c":167}]}];
+const N = DATA.length, STEP = 360 / N, CX = 500, CY = 500;
+const SVGNS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const el = (tag, attrs, text) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+const fmtStrength = v => v.s ? v.s : "—";
+
+/* rim names + alphabet ticks */
+const namesG = $("names"), ticksG = $("ticks");
+const nameEls = DATA.map((d, i) => {
+  const a = i * STEP;
+  const t = el("text", { class: "name", x: CX + 300, y: CY, "dominant-baseline": "central", transform: `rotate(${a - 90} ${CX} ${CY})` }, d.n);
+  namesG.appendChild(t);
+  return t;
+});
+let lastLetter = "";
+DATA.forEach((d, i) => {
+  const L = d.n[0].toUpperCase();
+  if (L === lastLetter) return;
+  lastLetter = L;
+  const a = (i - 0.5) * STEP;
+  ticksG.appendChild(el("line", { x1: CX, y1: CY - 300, x2: CX, y2: CY - 496, stroke: "var(--disc-edge)", "stroke-width": 1, transform: `rotate(${a} ${CX} ${CY})` }));
+  ticksG.appendChild(el("text", { class: "letter", x: CX, y: CY - 482, "text-anchor": "start", "dominant-baseline": "central", transform: `rotate(${a + STEP * 0.9} ${CX} ${CY}) rotate(0)` }, L));
+});
+
+/* cover disc with radial slot window */
+const SX0 = 384, SX1 = 616, SY0 = 222, SY1 = 466, R = 290, RAD = 12;
+$("cover").setAttribute("d",
+  `M${CX - R} ${CY} a${R} ${R} 0 1 0 ${2 * R} 0 a${R} ${R} 0 1 0 ${-2 * R} 0 Z ` +
+  `M${SX0 + RAD} ${SY0} H${SX1 - RAD} q${RAD} 0 ${RAD} ${RAD} V${SY1 - RAD} q0 ${RAD} ${-RAD} ${RAD} H${SX0 + RAD} q${-RAD} 0 ${-RAD} ${-RAD} V${SY0 + RAD} q0 ${-RAD} ${RAD} ${-RAD} Z`);
+
+/* slot background sits under cover: add to rotating layer visually but static content */
+const slotBg = el("rect", { x: SX0, y: SY0, width: SX1 - SX0, height: SY1 - SY0, fill: "var(--slot)" });
+$("rot").after(slotBg);
+
+const slotG = $("slotContent");
+let theta = 0, current = -1, hitCan = null;
+
+function idxFromTheta(th) { return ((Math.round(-th / STEP) % N) + N) % N; }
+
+function render(i) {
+  if (i === current && hitCan === renderedHit) return;
+  current = i; renderedHit = hitCan;
+  const d = DATA[i];
+  nameEls.forEach((t, k) => t.classList.toggle("on", k === i));
+  slotG.replaceChildren();
+  const rows = d.v.length;
+  const rowH = Math.min(30, (SY1 - SY0 - 40) / rows);
+  const top = SY0 + 24 + ((SY1 - SY0 - 40) - rowH * rows) / 2;
+  slotG.appendChild(el("text", { x: SX0 + 14, y: SY0 + 18, style: "font-family:var(--body);font-size:11px;letter-spacing:.12em;fill:#5d7470;font-weight:600" }, "STRENGTH"));
+  slotG.appendChild(el("text", { x: SX1 - 14, y: SY0 + 18, "text-anchor": "end", style: "font-family:var(--body);font-size:11px;letter-spacing:.12em;fill:#5d7470;font-weight:600" }, "CANISTER"));
+  d.v.forEach((v, k) => {
+    const y = top + rowH * k + rowH / 2;
+    const hit = hitCan === v.c;
+    if (hit) slotG.appendChild(el("rect", { x: SX0 + 4, y: y - rowH / 2 + 1, width: SX1 - SX0 - 8, height: rowH - 2, rx: 6, fill: "#f6dcb5" }));
+    if (k > 0) slotG.appendChild(el("line", { x1: SX0 + 12, x2: SX1 - 12, y1: y - rowH / 2, y2: y - rowH / 2, stroke: "#dbe4e1", "stroke-width": 1 }));
+    const st = el("text", { x: SX0 + 14, y, "dominant-baseline": "central", style: "font-family:var(--display);font-weight:700;font-size:19px;fill:#17302c" });
+    st.textContent = fmtStrength(v) + " ";
+    const f = el("tspan", { style: "font-family:var(--body);font-weight:500;font-size:12.5px;fill:#5d7470" }, v.f);
+    st.appendChild(f);
+    slotG.appendChild(st);
+    slotG.appendChild(el("rect", { x: SX1 - 64, y: y - 11, width: 52, height: 22, rx: 11, fill: "#d9861c" }));
+    slotG.appendChild(el("text", { x: SX1 - 38, y, "text-anchor": "middle", "dominant-baseline": "central", style: "font-family:var(--mono);font-weight:600;font-size:14px;fill:#ffffff" }, String(v.c)));
+  });
+  $("bigName").textContent = d.n;
+  $("bigCount").textContent = rows === 1 ? "1 STRENGTH" : rows + " STRENGTHS";
+  const wheel = $("wheel");
+  wheel.setAttribute("aria-valuenow", i);
+  wheel.setAttribute("aria-valuetext", d.n + ": " + d.v.map(v => `${fmtStrength(v)} ${v.f}, canister ${v.c}`).join("; "));
+  $("readout").innerHTML = `<h2></h2><table><tbody></tbody></table>`;
+  $("readout").querySelector("h2").textContent = d.n;
+  const tb = $("readout").querySelector("tbody");
+  d.v.forEach(v => {
+    const tr = document.createElement("tr");
+    if (hitCan === v.c) tr.className = "hit";
+    tr.innerHTML = `<td><strong></strong></td><td class="f"></td><td class="c"><span class="can"></span></td>`;
+    tr.children[0].firstChild.textContent = fmtStrength(v);
+    tr.children[1].textContent = v.f;
+    tr.children[2].firstChild.textContent = v.c;
+    tb.appendChild(tr);
+  });
+}
+let renderedHit = null;
+
+function setTheta(th) {
+  theta = th;
+  $("rot").setAttribute("transform", `rotate(${theta} ${CX} ${CY})`);
+  render(idxFromTheta(theta));
+}
+
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let anim = null;
+function spinTo(target) {
+  cancelAnimationFrame(anim);
+  if (reduce) { setTheta(target); return; }
+  const from = theta, dist = target - from, dur = Math.min(700, 180 + Math.abs(dist) * 2.2), t0 = performance.now();
+  const tick = now => {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    setTheta(from + dist * e);
+    if (p < 1) anim = requestAnimationFrame(tick);
+  };
+  anim = requestAnimationFrame(tick);
+}
+function goIndex(i) {
+  // nearest equivalent angle to current rotation
+  let target = -i * STEP;
+  target += Math.round((theta - target) / 360) * 360;
+  spinTo(target);
+}
+function step(dir) { hitCan = null; goIndex((idxFromTheta(theta) + dir + N) % N); }
+function snap() { goIndex(idxFromTheta(theta)); }
+
+/* drag */
+const wheel = $("wheel");
+let drag = null;
+function angleAt(ev) {
+  const r = wheel.getBoundingClientRect();
+  const x = (ev.clientX - r.left) / r.width * 1000 - CX, y = (ev.clientY - r.top) / r.height * 1000 - CY;
+  return Math.atan2(y, x) * 180 / Math.PI;
+}
+wheel.addEventListener("pointerdown", ev => {
+  cancelAnimationFrame(anim);
+  drag = { last: angleAt(ev) };
+  wheel.setPointerCapture(ev.pointerId);
+  wheel.classList.add("dragging");
+});
+wheel.addEventListener("pointermove", ev => {
+  if (!drag) return;
+  const a = angleAt(ev);
+  let d = a - drag.last;
+  if (d > 180) d -= 360; if (d < -180) d += 360;
+  drag.last = a;
+  hitCan = null;
+  setTheta(theta + d);
+});
+const endDrag = () => { if (!drag) return; drag = null; wheel.classList.remove("dragging"); snap(); };
+wheel.addEventListener("pointerup", endDrag);
+wheel.addEventListener("pointercancel", endDrag);
+
+let wheelAcc = 0;
+wheel.addEventListener("wheel", ev => {
+  ev.preventDefault();
+  wheelAcc += ev.deltaY;
+  if (Math.abs(wheelAcc) >= 40) { step(wheelAcc > 0 ? 1 : -1); wheelAcc = 0; }
+}, { passive: false });
+
+wheel.addEventListener("keydown", ev => {
+  const k = ev.key;
+  if (k === "ArrowRight" || k === "ArrowDown") step(1);
+  else if (k === "ArrowLeft" || k === "ArrowUp") step(-1);
+  else if (k === "PageDown") step(10);
+  else if (k === "PageUp") step(-10);
+  else if (k === "Home") { hitCan = null; goIndex(0); }
+  else if (k === "End") { hitCan = null; goIndex(N - 1); }
+  else if (/^[a-z]$/i.test(k)) { const j = DATA.findIndex(d => d.n[0].toLowerCase() === k.toLowerCase()); if (j >= 0) { hitCan = null; goIndex(j); } }
+  else return;
+  ev.preventDefault();
+});
+$("prev").onclick = () => step(-1);
+$("next").onclick = () => step(1);
+
+/* search */
+const dl = $("drugList");
+DATA.forEach(d => { const o = document.createElement("option"); o.value = d.n; dl.appendChild(o); });
+$("find").addEventListener("input", ev => {
+  const q = ev.target.value.trim().toLowerCase(), hint = $("hint");
+  if (!q) { hint.textContent = ""; hitCan = null; render(current); return; }
+  if (/^\d+$/.test(q)) {
+    const c = +q, j = DATA.findIndex(d => d.v.some(v => v.c === c));
+    if (j >= 0) { hitCan = c; renderedHit = undefined; goIndex(j); const v = DATA[j].v.find(v => v.c === c); hint.textContent = `Canister ${c} is ${DATA[j].n} ${fmtStrength(v)} ${v.f}.`; }
+    else hint.textContent = `No medicine uses canister ${c}.`;
+    return;
+  }
+  hitCan = null;
+  let j = DATA.findIndex(d => d.n.toLowerCase().startsWith(q));
+  if (j < 0) j = DATA.findIndex(d => d.n.toLowerCase().includes(q));
+  if (j >= 0) { hint.textContent = ""; goIndex(j); }
+  else hint.textContent = `Nothing on the wheel matches “${ev.target.value.trim()}”.`;
+});
+
+$("foot").textContent = `${N} medicines and ${DATA.reduce((s, d) => s + d.v.length, 0)} strengths with a numbered canister. FSP1, FSP2, MDU and blank entries are left off. Taken from the canister sheet on 16 Nov 2026; changes to the sheet won't show here until the wheel is rebuilt.`;
+
+setTheta(0);
+</script>
+
+</body></html>
